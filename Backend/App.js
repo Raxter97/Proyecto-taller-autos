@@ -4,11 +4,12 @@ require('dotenv').config();
 
 
 const AuthRoutes = require('./routes/AuthRoutes');
-const clienteRoutes = require('./routes/clienteRoutes');
-const empleadoRoutes = require('./routes/empleadoRoutes');
-const autoRoutes = require('./routes/autoRoutes');
-const parkingRoutes = require('./routes/parkingRoutes');
-const turnoRoutes = require('./routes/TurnoRoutes');
+const ClienteRoutes = require('./routes/ClienteRoutes');
+const EmpleadoRoutes = require('./routes/EmpleadoRoutes');
+const AutoRoutes = require('./routes/AutoRoutes');
+const ParkingRoutes = require('./routes/ParkingRoutes');
+const TurnoRoutes = require('./routes/TurnoRoutes');
+const InventarioRoutes = require('./routes/InventarioRoutes');
 
 
 const app = express();
@@ -16,11 +17,12 @@ app.use(cors())
 app.use(express.json())
 
 
-app.use('/api/autos', autoRoutes);
-app.use('/api/clientes', clienteRoutes);
-app.use('/api/empleados', empleadoRoutes);
-app.use('/api/parking', parkingRoutes);
-app.use('/api/turnos', turnoRoutes);
+app.use('/api/autos', AutoRoutes);
+app.use('/api/clientes', ClienteRoutes);
+app.use('/api/empleados', EmpleadoRoutes);
+app.use('/api/parking', ParkingRoutes);
+app.use('/api/turnos', TurnoRoutes);
+app.use('/api/inventario', InventarioRoutes);
 
 app.use('/api/auth', AuthRoutes);
 

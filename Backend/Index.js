@@ -3,18 +3,20 @@ const sequelize = require('./config/Database');
 const PORT = process.env.PORT || 5000;
 
 
-// require('./models/User.models');
-// require('./models/Cliente');
-// require('./models/Empleado');
-// require('./models/Auto');
-// require('./models/Rol');
-// require('./models/Permiso');
-// require('./models/rolPermiso');
-// require('./models/usuarioRol');
-// require('./models/turno');
-// require('./models/Bitacora');
-// require('./models/AuditoriaDvv');
-//require('./models/parking');
+require('./models/User.models');
+require('./models/Cliente');
+require('./models/Empleado');
+require('./models/Auto');
+require('./models/Rol');
+require('./models/Permiso');
+require('./models/RolPermiso');
+require('./models/UsuarioRol');
+require('./models/Turno');
+require('./models/Bitacora');
+require('./models/AuditoriaDvv');
+require('./models/Parking');
+require('./models/Repuesto');
+require('./models/Proveedor');
 
 async function main() {
   try {

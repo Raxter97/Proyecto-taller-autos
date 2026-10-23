@@ -1,5 +1,5 @@
 const {Sequelize, DataTypes} = require('sequelize');
-const sequelize = require('../config/database');
+const sequelize = require('../config/Database');
 
 const Proveedor = sequelize.define('Proveedor',{
     id_proveedor:{
@@ -19,8 +19,12 @@ const Proveedor = sequelize.define('Proveedor',{
         allowNull: false,
         validate: {isEmail: true}
     },
-    telefono:{
+    direccion:{
         type: DataTypes.STRING(100),
+        allowNull:false,
+    },
+    telefono:{
+        type: DataTypes.STRING(20),
         unique:true,
         allowNull: false,
     },
@@ -33,12 +37,9 @@ const Proveedor = sequelize.define('Proveedor',{
         allowNull:false,
         defaultValue:true
     },
-    direccion:{
-        type: DataTypes.STRING(100),
-        allowNull:false,
-    },
+    
 },{
-    tableName: "Proveedor",
+    tableName: "proveedor",
     timestamps: false
 });
 

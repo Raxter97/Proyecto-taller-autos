@@ -30,11 +30,20 @@ const Empleado = sequelize.define('Empleado',{
         type: DataTypes.DECIMAL(10,2),
         allowNull: false
     },
+    disponibilidad: {
+        type: DataTypes.STRING(15),
+        allowNull: false,
+        defaultValue:true
+    },
     estado:{
         type: DataTypes.BOOLEAN,
         allowNull:false,
         defaultValue:true
     },
+    dvh: {
+        type: DataTypes.STRING(255),
+        allowNull: false
+    }
     
 },{
     tableName: "empleados",

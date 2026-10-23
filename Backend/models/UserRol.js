@@ -30,4 +30,6 @@ const UserRol = sequelize.define('UserRol', {
     timestamps: false 
 });
 
+
+
 module.exports = UserRol;

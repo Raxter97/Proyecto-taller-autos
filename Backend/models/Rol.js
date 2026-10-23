@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const sequelize = require('../config/Database');
 
 //Luna
 
@@ -29,8 +29,10 @@ const Rol = sequelize.define('Rol', {
         defaultValue: true 
     },
 }, { 
-    tableName: 'rol', 
+    tableName: 'roles', 
     timestamps: false 
 });
+Rol.belongsToMany(User, { through: 'usuario_rol', foreignKey: 'id_rol', as: 'usuarios' });
+Rol.belongsToMany(Permiso, { through: 'rol_permiso', foreignKey: 'id_rol', as: 'permisos' });
 
 module.exports = Rol;

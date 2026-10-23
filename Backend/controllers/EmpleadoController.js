@@ -2,7 +2,7 @@ const Empleado = require('../models/Empleado');
 const { calcularDVH } = require('../utils/CalculosDv');
 const { actualizarDVV } = require('../utils/LogicaDvv');
 const { registrarBitacora } = require('../services/BitacoraService');
-//Luna
+
 const crearEmpleado = async (req, res) => {
     try {
         const { legajo, nombre, apellido, email, disponibilidad, sueldo } = req.body;

@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const sequelize = require('../config/Database');
 
 const Permiso = sequelize.define('Permiso', {
     id_permiso: { 
@@ -25,6 +25,8 @@ const Permiso = sequelize.define('Permiso', {
     tableName: 'permisos', 
     timestamps: false 
 });
+
+Permiso.belongsToMany(Rol, { through: 'rol_permiso', foreignKey: 'id_permiso', as: 'roles' });
 
 module.exports = Permiso;
 

@@ -1,7 +1,6 @@
 const {DataTypes} = require('sequelize');
 const sequelize = require('../config/Database');
 
-//Luna
 
 const User = sequelize.define('User',{
     id_user:{
@@ -48,5 +47,7 @@ const User = sequelize.define('User',{
     tableName: "users",
     timestamps: false
 });
+
+User.belongsToMany(Rol, { through: 'usuario_rol', foreignKey: 'id_usuario', as: 'roles' });
 
 module.exports = User;
