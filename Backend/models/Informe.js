@@ -40,4 +40,10 @@ const Informe = sequelize.define('Informe', {
     timestamps: false
 });
 
+Informe.belongsTo(Auto, { foreignKey: 'id_auto', as: 'auto' });
+Informe.belongsTo(Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
+Informe.hasOne(Factura, { foreignKey: 'id_informe', as: 'factura' });
+Informe.hasMany(RepuestoUsado, { foreignKey: 'id_informe', as: 'repuestosUsados' });
+Informe.hasMany(ServicioRealizado, { foreignKey: 'id_informe', as: 'serviciosRealizados' });
+
 module.exports = Informe;

@@ -42,5 +42,6 @@ const Proveedor = sequelize.define('Proveedor',{
     tableName: "proveedor",
     timestamps: false
 });
+Proveedor.hasMany(CompraRepuestos, { foreignKey: 'id_proveedor', as: 'compras' });
 
 module.exports = Proveedor;

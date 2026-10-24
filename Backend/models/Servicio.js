@@ -26,4 +26,6 @@ const Servicio = sequelize.define('Servicio', {
     timestamps: false
 });
 
+Servicio.hasMany(ServicioRealizado, { foreignKey: 'id_servicio', as: 'serviciosRealizados' });
+
 module.exports = Servicio;

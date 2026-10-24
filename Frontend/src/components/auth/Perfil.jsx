@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { apiCall } from '../Api';
+import { apiCall } from '../../Api';
 
 const dominiosComunes = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
 
-export default function perfil({ onLogout }) {
+export default function Perfil({ onLogout }) {
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
   const [emailUsuario, setEmailUsuario] = useState('');

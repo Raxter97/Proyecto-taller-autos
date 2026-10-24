@@ -8,10 +8,37 @@ const sequelize = require('../config/Database');
 
 // GESTIÓN REPUESTOS 
 
-const obtenerRepuestos = async (_req, res) => {
+const obtenerRepuestos = async (req, res) => {
     try {
-        const repuestos = await Repuesto.findAll();
-        res.status(200).json({ repuestos });
+        // Extraer parámetros de la URL 
+        let { page = 1, limit = 50 } = req.query;
+        
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        if (limit > 50) {
+            limit = 50;
+        }
+        if (page < 1) {
+            page = 1;
+        }
+
+        // Calcular el desplazamiento (offset)
+        const offset = (page - 1) * limit;
+
+        const { count, rows: repuestos } = await Repuesto.findAndCountAll({
+            limit,
+            offset,
+            order: [['id_repuesto', 'ASC']]
+        });
+
+        res.status(200).json({
+            totalRegistros: count,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page,
+            pageSize: repuestos.length,
+            repuestos
+        });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error al obtener repuestos', error: error.message });
     }
@@ -387,7 +414,7 @@ const confirmarRecepcionMercaderia = async (req, res) => {
         });
 
         await trans.commit();
-        res.status(200).json({ mensaje: 'Recepción de mercadería confirmada. Stock actualizado' });
+        res.status(200).json({ mensaje: 'Recepción de mercadería confirmada. Stock actualizado correctamente.' });
     } catch (error) {
         await trans.rollback();
         res.status(500).json({ mensaje: 'Error al confirmar recepción de mercadería', error: error.message });

@@ -50,4 +50,7 @@ const Empleado = sequelize.define('Empleado',{
     timestamps: false
 });
 
+Empleado.hasOne(User, { foreignKey: 'id_empleado', as: 'usuario' });
+Empleado.hasMany(Informe, { foreignKey: 'id_empleado', as: 'informes' });
+
 module.exports = Empleado;

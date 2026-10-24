@@ -35,9 +35,10 @@ const Turno = sequelize.define('Turno', {
     }
 }, { 
     tableName: 'turnos', 
-    timestamps: false });
+    timestamps: false 
+});
 
-Turno.belongsTo(Cliente, { foreignKey: 'id_cliente' });
-Turno.belongsTo(Auto, { foreignKey: 'id_auto' });
+Turno.belongsTo(Cliente, { foreignKey: 'id_cliente', as: 'cliente' });
+Turno.belongsTo(Auto, { foreignKey: 'id_auto', as: 'auto' });
 
 module.exports = Turno;

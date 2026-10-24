@@ -32,7 +32,7 @@ const Rol = sequelize.define('Rol', {
     tableName: 'roles', 
     timestamps: false 
 });
-Rol.belongsToMany(User, { through: 'usuario_rol', foreignKey: 'id_rol', as: 'usuarios' });
-Rol.belongsToMany(Permiso, { through: 'rol_permiso', foreignKey: 'id_rol', as: 'permisos' });
+Rol.belongsToMany(User, { through: 'usuario_rol', foreignKey: 'id_rol', otherKey: 'id_usuario', as: 'usuarios' });
+Rol.belongsToMany(Permiso, { through: 'rol_permiso', foreignKey: 'id_rol', otherKey: 'id_permiso', as: 'permisos' });
 
 module.exports = Rol;

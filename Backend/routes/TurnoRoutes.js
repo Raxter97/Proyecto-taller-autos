@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const { consultarTurnos, agendarTurno, reprogramarTurno, cancelarTurno } = require('../controllers/TurnoController');
 const { verificarToken } = require('../middlewares/AuthMiddleware');
+const { verificarPermiso } = require('../middlewares/RBACMiddleware');
 
 router.use(verificarToken);
 
-router.get('/', consultarTurnos);
-router.post('/', agendarTurno);
-router.put('/:id', reprogramarTurno);
-router.put('/:id/cancelar', cancelarTurno);
+router.get('/', verificarPermiso('AGENDA_TURNOS_LECTURA'), consultarTurnos);
+router.post('/', verificarPermiso('AGENDA_TURNOS_CRUD'), agendarTurno);
+router.put('/:id', verificarPermiso('AGENDA_TURNOS_CRUD'), reprogramarTurno);
+router.put('/:id/cancelar', verificarPermiso('AGENDA_TURNOS_CRUD'), cancelarTurno);
 
 module.exports = router;

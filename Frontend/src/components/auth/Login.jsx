@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { apiCall } from '../Api';
+import { apiCall } from '../../Api';
 
 const dominiosComunes = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
 

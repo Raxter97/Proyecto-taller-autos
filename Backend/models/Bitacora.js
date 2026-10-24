@@ -38,5 +38,6 @@ const Bitacora = sequelize.define('Bitacora',{
     tableName: "bitacora",
     timestamps: false
 });
+Bitacora.belongsTo(User, { foreignKey: 'id_usuario', as: 'usuario' });
 
 module.exports = Bitacora;

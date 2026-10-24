@@ -1,3 +1,5 @@
+const sequelize = require('../config/Database');
+const Turno = require('../models/Turno');
 const Informe = require('../models/Informe');
 const Auto = require('../models/Auto');
 const Empleado = require('../models/Empleado');
@@ -9,20 +11,40 @@ const { registrarBitacora } = require('../services/BitacoraService');
 const sequelize = require('../config/Database');
 
 const crearInforme = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { id_auto, id_empleado, descripcion } = req.body;
         if (!id_auto || !id_empleado || !descripcion) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'Todos los campos son obligatorios.' });
         }
 
-        const auto = await Auto.findByPk(id_auto);
-        if (!auto || !auto.estado) return res.status(400).json({ mensaje: 'Vehículo inválido o inactivo.' });
+        const auto = await Auto.findByPk(
+            id_auto, { transaction: trans }
+        );
+        if (!auto) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'Vehículo inválido' });
+        }
+        if (!auto.estado) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'Vehículo inactivo.' });
+        }
 
-        const empleado = await Empleado.findByPk(id_empleado);
-        if (!empleado || !empleado.estado) return res.status(400).json({ mensaje: 'Empleado inválido o inactivo.' });
+        const empleado = await Empleado.findByPk(
+            id_empleado, { transaction: trans }
+        );
+        if (!empleado ) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'Empleado inválido' });
+        }
+        if (!empleado.estado) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'Empleado inactivo.' });
+        }
 
         const fecha = new Date().toISOString().split('T')[0];
-        const estado = false; // False = En Proceso[cite: 39]
+        const estado = false; // False = En Proceso
 
         const datosDVH = { descripcion, estado: false, fecha, id_auto: Number(id_auto), id_empleado: Number(id_empleado) };
         const dvh = calcularDVH(datosDVH);
@@ -31,48 +53,65 @@ const crearInforme = async (req, res) => {
             fecha, descripcion, estado, dvh,
             id_auto: Number(id_auto),
             id_empleado: Number(id_empleado)
+        }, { transaction: trans });
+
+        // BUSCAR Y ACTUALIZAR EL TURNO ASOCIADO A 'Atendido'
+        const turnoAsociado = await Turno.findOne({
+            where: { 
+                id_auto: Number(id_auto),
+                estado: ['Agendado', 'Confirmado']
+            },
+            order: [['fecha_hora', 'ASC']],
+            transaction: trans
         });
+
+        if (turnoAsociado) {
+            turnoAsociado.estado = 'Atendido';
+            await turnoAsociado.save({ transaction: trans });
+        }
 
         await actualizarDVV(Informe, 'informes', 'id_informe');
         await registrarBitacora({
             accion: 'INSERT_INFORME',
-            descripcion: JSON.stringify({ posterior: nuevoInforme }),
+            descripcion: JSON.stringify({ informe: nuevoInforme }),
             nivel_impacto: 'Media',
             id_usuario: req.user?.id_user || 1
         });
 
-        res.status(201).json({ mensaje: 'Informe abierto exitosamente', informe: nuevoInforme });
+        await trans.commit();
+        res.status(201).json({ mensaje: 'Informe abierto exitosamente y turno marcado como atendido' });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error al crear informe', error: error.message });
     }
 };
 
 const imputarRepuesto = async (req, res) => {
-    const t = await sequelize.transaction();
+    const trans = await sequelize.transaction();
     try {
         const { id_informe } = req.params;
         const { id_repuesto, cantidad } = req.body;
 
-        const informe = await Informe.findByPk(id_informe, { transaction: t });
+        const informe = await Informe.findByPk(id_informe, { transaction: trans });
         if (!informe || informe.estado === true) {
-            await t.rollback();
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'Informe no encontrado o ya finalizado.' });
         }
 
-        const repuesto = await Repuesto.findByPk(id_repuesto, { transaction: t });
+        const repuesto = await Repuesto.findByPk(id_repuesto, { transaction: trans });
         if (!repuesto || !repuesto.estado || repuesto.stock < cantidad) {
-            await t.rollback();
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'Repuesto inválido o stock insuficiente.' });
         }
 
         repuesto.stock -= Number(cantidad);
-        await repuesto.save({ transaction: t });
+        await repuesto.save({ transaction: trans });
 
         const repuestoUsado = await RepuestoUsado.create({
             id_informe: Number(id_informe),
             id_repuesto: Number(id_repuesto),
             cantidad: Number(cantidad)
-        }, { transaction: t });
+        }, { transaction: trans });
 
         const datosDVH = {
             descripcion: informe.descripcion,
@@ -82,7 +121,7 @@ const imputarRepuesto = async (req, res) => {
             id_empleado: informe.id_empleado
         };
         informe.dvh = calcularDVH(datosDVH);
-        await informe.save({ transaction: t });
+        await informe.save({ transaction: trans });
 
         await actualizarDVV(Informe, 'informes', 'id_informe');
         await registrarBitacora({
@@ -92,10 +131,10 @@ const imputarRepuesto = async (req, res) => {
             id_usuario: req.user?.id_user || 1
         });
 
-        await t.commit();
+        await trans.commit();
         res.status(200).json({ mensaje: 'Repuesto imputado correctamente', repuestoUsado });
     } catch (error) {
-        await t.rollback();
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error al imputar repuesto', error: error.message });
     }
 };

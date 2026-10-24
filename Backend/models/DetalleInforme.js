@@ -24,6 +24,8 @@ const RepuestoUsado = sequelize.define('RepuestoUsado', {
     tableName: 'repuestos_usados',
     timestamps: false
 });
+RepuestoUsado.belongsTo(Informe, { foreignKey: 'id_informe', as: 'informe' });
+RepuestoUsado.belongsTo(Repuesto, { foreignKey: 'id_repuesto', as: 'repuesto' });
 
 const ServicioRealizado = sequelize.define('ServicioRealizado', {
     id_servicio_realizado: {
@@ -44,5 +46,7 @@ const ServicioRealizado = sequelize.define('ServicioRealizado', {
     tableName: 'servicios_realizados',
     timestamps: false
 });
+ServicioRealizado.belongsTo(Informe, { foreignKey: 'id_informe', as: 'informe' });
+ServicioRealizado.belongsTo(Servicio, { foreignKey: 'id_servicio', as: 'servicio' });
 
 module.exports = { RepuestoUsado, ServicioRealizado };

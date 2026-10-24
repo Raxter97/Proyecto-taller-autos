@@ -1,8 +1,12 @@
 const Auto = require('../models/Auto');
 const Cliente = require('../models/Cliente');
+const Informe = require('../models/Informe');
+const Empleado = require('../models/Empleado');
+const Servicio = require('../models/Servicio');
+const Repuesto = require('../models/Repuesto');
+const { ServicioRealizado, RepuestoUsado } = require('../models/DetallesInforme');
 const { registrarBitacora } = require('../services/BitacoraService');
 
-// gomez
 
 const crearAuto = async (req, res) => {
     try {
@@ -84,7 +88,42 @@ const consultarHistorial = async (req, res) => {
         if (!auto) {
             return res.status(404).json({ mensaje: 'Vehículo no encontrado.' });
         }
-        res.status(200).json({ mensaje: 'Historial vehicular', auto, historial: [] });
+
+        // Consultar el historial completo cruzando con informes, empleados, servicios y repuestos
+        const historial = await Informe.findAll({
+            where: { id_auto: auto.id_auto },
+            include: [
+                { 
+                    model: Empleado, 
+                    attributes: ['legajo', 'nombre', 'apellido'] 
+                },
+                { 
+                    model: ServicioRealizado, 
+                    include: [
+                        { 
+                            model: Servicio, 
+                            attributes: ['descripcion', 'precio'] 
+                        }
+                    ] 
+                },
+                { 
+                    model: RepuestoUsado, 
+                    include: [
+                        { 
+                            model: Repuesto, 
+                            attributes: ['descripcion'] 
+                        }
+                    ] 
+                }
+            ],
+            order: [['fecha', 'DESC']]
+        });
+
+        res.status(200).json({ 
+            mensaje: 'Historial vehicular obtenido con éxito', 
+            auto, 
+            historial 
+        });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }

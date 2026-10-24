@@ -13,6 +13,9 @@ const InventarioRoutes = require('./routes/InventarioRoutes');
 const servicioRoutes = require('./routes/ServicioRoutes');
 const informeRoutes = require('./routes/InformeRoutes');
 const facturaRoutes = require('./routes/facturaRoutes');
+const UserRoutes = require('./routes/UserRoutes');
+const BitacoraRoutes = require('./routes/BitacoraRoutes');
+
 
 const app = express();
 app.use(cors())
@@ -27,7 +30,9 @@ app.use('/api/turnos', TurnoRoutes);
 app.use('/api/inventario', InventarioRoutes);
 app.use('/api/servicios', servicioRoutes);
 app.use('/api/taller/informes', informeRoutes);
-app.use('/api/facturacion', facturaRoutes);
+app.use('/api/facturacion', facturaRoutes); 
+app.use('/api/usuarios', UserRoutes);
+app.use('/api/bitacora', BitacoraRoutes);
 
 app.use('/api/auth', AuthRoutes);
 

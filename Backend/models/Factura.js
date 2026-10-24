@@ -36,5 +36,6 @@ const Factura = sequelize.define('Factura', {
     tableName: 'facturas',
     timestamps: false
 });
+Factura.belongsTo(Informe, { foreignKey: 'id_informe', as: 'informe' });
 
 module.exports = Factura;
