@@ -1,7 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
 
-//Luna
 
 const Parking = sequelize.define('Parking', {
     id_parking: {

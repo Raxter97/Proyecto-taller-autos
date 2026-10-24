@@ -1,5 +1,7 @@
 const Parking = require('../models/Parking');
 const Auto = require('../models/Auto');
+const Informe = require('../models/Informe');
+const Factura = require('../models/Factura');
 const { registrarBitacora } = require('../services/BitacoraService');
 
 const consultarParking = async (req, res) => {
@@ -50,7 +52,7 @@ const registrarIngreso = async (req, res) => {
             id_usuario: req.user?.id_user || 1
         });
 
-        res.status(200).json({ mensaje: 'Vehículo ingresado al parking exitosamente a la plaza: ', plaza });
+        res.status(200).json({ mensaje: 'Vehículo ingresado exitosamente a la plaza: ', plaza });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
@@ -63,6 +65,7 @@ const registrarSalida = async (req, res) => {
         const plaza = await Parking.findOne({ 
             where: { nro_lugar } 
         });
+        
         if (!plaza) {
             return res.status(404).json({ mensaje: 'Plaza de parking no encontrada.' });
         }
@@ -71,11 +74,29 @@ const registrarSalida = async (req, res) => {
             return res.status(400).json({ mensaje: 'La plaza ya se encuentra libre.' });
         }
 
+        const informe = await Informe.findOne({ 
+            where: { id_auto: plaza.id_auto }, 
+            order: [['id_informe', 'DESC']] 
+        });
+        
+        if (informe) {
+            const factura = await Factura.findOne({ 
+                where: { id_informe: informe.id_informe } 
+            });
+            
+            if (!factura || factura.estado !== 'pagada') {
+                return res.status(400).json({ 
+                    mensaje: 'No se puede registrar la salida del vehículo. La factura asociada se encuentra pendiente de pago.' 
+                });
+            }
+        }
+
         const autoIdPrevio = plaza.id_auto;
         plaza.estado = false;
         plaza.id_auto = null;
         await plaza.save();
 
+        
         await registrarBitacora({
             accion: 'SALIDA_PARKING',
             descripcion: JSON.stringify({ nro_lugar, id_auto_previo: autoIdPrevio }),

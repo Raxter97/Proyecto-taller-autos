@@ -17,6 +17,8 @@ require('./models/AuditoriaDvv');
 require('./models/Parking');
 require('./models/Repuesto');
 require('./models/Proveedor');
+require('./models/Informe');
+require('./models/DetallesInforme'); 
 
 async function main() {
   try {

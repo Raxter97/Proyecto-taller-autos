@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { consultarTurnos, agendarTurno, reprogramarTurno, cancelarTurno } = require('../controllers/TurnoController');
-const { verificarToken } = require('../middlewares/authMiddleware');
+const { verificarToken } = require('../middlewares/AuthMiddleware');
 
 router.use(verificarToken);
 

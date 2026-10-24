@@ -1,8 +1,12 @@
 const Cliente = require('../models/Cliente');
+const Turno = require('../models/Turno');
+const Auto = require('../models/Auto');
+const Informe = require('../models/Informe');
+const Factura = require('../models/Factura');
 const { calcularDVH } = require('../utils/CalculosDv');
-const { actualizarDVV } = require('../utils/KogicaDvv');
+const { actualizarDVV } = require('../utils/LogicaDvv');
 const { registrarBitacora } = require('../services/BitacoraService');
-//Luna
+
 const crearCliente = async (req, res) => {
     try {
         const { dni, nombre, apellido, email, telefono, direccion } = req.body;
@@ -107,8 +111,51 @@ const desactivarCliente = async (req, res) => {
             return res.status(404).json({ mensaje: 'Cliente no encontrado.' });
         }
 
+        const turnosActivos = await Turno.findOne({
+            where: { id_cliente: id, 
+                    estado: ['Agendado', 'Confirmado'] 
+            }
+        });
+        if (turnosActivos) {
+            return res.status(400).json({ mensaje: 'No se puede dar de baja: el cliente posee turnos activos en la agenda.' });
+        }
+
+        const autosCliente = await Auto.findAll({ 
+            where: { id_cliente: id } 
+        });
+        const autoIds = autosCliente.map(a => a.id_auto);
+
+        if (autoIds.length > 0) {
+            const informeEnProceso = await Informe.findOne({
+                where: { 
+                    id_auto: autoIds, 
+                    estado: false
+                }
+            });
+            if (informeEnProceso) {
+                return res.status(400).json({ mensaje: 'No se puede dar de baja: el cliente tiene vehículos con reparaciones abiertas en el taller.' });
+            }
+
+            const informesCliente = await Informe.findAll({ 
+                where: { id_auto: autoIds } 
+            });
+            const informeIds = informesCliente.map(i => i.id_informe);
+
+            if (informeIds.length > 0) {
+                const facturaPendiente = await Factura.findOne({
+                    where: { 
+                        id_informe: informeIds, 
+                        estado: 'pendiente' 
+                    }
+                });
+                if (facturaPendiente) {
+                    return res.status(400).json({ mensaje: 'No se puede dar de baja: el cliente posee facturas pendientes de pago.' });
+                }
+            }
+        }
+
         const estadoPrevio = cliente.toJSON();
-        cliente.estado = false; // Baja lógica
+        cliente.estado = false; 
 
         const datosDVH = {
             apellido: cliente.apellido,

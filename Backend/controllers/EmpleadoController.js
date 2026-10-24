@@ -1,4 +1,5 @@
 const Empleado = require('../models/Empleado');
+const Informe = require('../models/Informe');
 const { calcularDVH } = require('../utils/CalculosDv');
 const { actualizarDVV } = require('../utils/LogicaDvv');
 const { registrarBitacora } = require('../services/BitacoraService');
