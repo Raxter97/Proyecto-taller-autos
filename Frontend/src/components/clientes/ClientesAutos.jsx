@@ -1,0 +1,169 @@
+import { useEffect, useState } from 'react';
+import { apiCall } from '../Api';
+
+export default function ClientesAutos() {
+  const [clientes, setClientes] = useState([]);
+  const [autos, setAutos] = useState([]);
+  const [historial, setHistorial] = useState(null);
+  const [patenteBusqueda, setPatenteBusqueda] = useState('');
+  
+  // Estados de formularios
+  const [dni, setDni] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [direccion, setDireccion] = useState('');
+
+  const [autoPatente, setAutoPatente] = useState('');
+  const [autoMarca, setAutoMarca] = useState('');
+  const [autoModelo, setAutoModelo] = useState('');
+  const [autoIdCliente, setAutoIdCliente] = useState('');
+
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const cargarDatos = async () => {
+    try {
+      // Como no creamos un GET general de clientes/autos explícito en las rutas base 
+      // (solo creamos endpoints puntuales), puedes ajustar si tienes un GET general.
+      // Aquí simulamos la llamada a los endpoints operativos:
+      const resClientes = await apiCall('/clientes').catch(() => ({ clientes: [] }));
+      setClientes(resClientes.clientes || []);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  const handleCrearCliente = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    try {
+      await apiCall('/clientes', {
+        method: 'POST',
+        body: JSON.stringify({ dni, nombre, apellido, email, telefono, direccion })
+      });
+      setSuccess('Cliente registrado exitosamente.');
+      setDni(''); setNombre(''); setApellido(''); setEmail(''); setTelefono(''); setDireccion('');
+      cargarDatos();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleCrearAuto = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    try {
+      await apiCall('/autos', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          patente: autoPatente, 
+          marca: autoMarca, 
+          modelo: autoModelo, 
+          id_cliente: Number(autoIdCliente) 
+        })
+      });
+      setSuccess('Vehículo registrado exitosamente.');
+      setAutoPatente(''); setAutoMarca(''); setAutoModelo(''); setAutoIdCliente('');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleBuscarHistorial = async (e) => {
+    e.preventDefault();
+    setError('');
+    setHistorial(null);
+    try {
+      const data = await apiCall(`/autos/historial/${patenteBusqueda}`);
+      setHistorial(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleBajaCliente = async (id) => {
+    if (!window.confirm('¿Desea dar de baja lógica a este cliente? Se validarán dependencias.')) return;
+    setError('');
+    setSuccess('');
+    try {
+      await apiCall(`/clientes/${id}`, { method: 'DELETE' });
+      setSuccess('Cliente dado de baja correctamente.');
+      cargarDatos();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h2>Gestión de Clientes y Vehículos</h2>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {success && <p style={{ color: 'green' }}>{success}</p>}
+
+      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+        {/* Formulario Registrar Cliente */}
+        <form onSubmit={handleCrearCliente} style={{ border: '1px solid #444', padding: '15px', flex: '1' }}>
+          <h3>Registrar Cliente</h3>
+          <div><input type="text" placeholder="DNI" value={dni} onChange={e => setDni(e.target.value)} required /></div>
+          <div><input type="text" placeholder="Nombre" value={nombre} onChange={e => setNombre(e.target.value)} required /></div>
+          <div><input type="text" placeholder="Apellido" value={apellido} onChange={e => setApellido(e.target.value)} required /></div>
+          <div><input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required /></div>
+          <div><input type="text" placeholder="Teléfono" value={telefono} onChange={e => setTelefono(e.target.value)} required /></div>
+          <div><input type="text" placeholder="Dirección" value={direccion} onChange={e => setDireccion(e.target.value)} /></div>
+          <button type="submit" style={{ marginTop: '10px' }}>Guardar Cliente</button>
+        </form>
+
+        {/* Formulario Registrar Auto */}
+        <form onSubmit={handleCrearAuto} style={{ border: '1px solid #444', padding: '15px', flex: '1' }}>
+          <h3>Registrar Vehículo</h3>
+          <div><input type="text" placeholder="Patente (Ej: AB123CD)" value={autoPatente} onChange={e => setAutoPatente(e.target.value)} required /></div>
+          <div><input type="text" placeholder="Marca" value={autoMarca} onChange={e => setAutoMarca(e.target.value)} required /></div>
+          <div><input type="text" placeholder="Modelo" value={autoModelo} onChange={e => setAutoModelo(e.target.value)} required /></div>
+          <div><input type="number" placeholder="ID del Cliente Propietario" value={autoIdCliente} onChange={e => setAutoIdCliente(e.target.value)} required /></div>
+          <button type="submit" style={{ marginTop: '10px' }}>Vincular Vehículo</button>
+        </form>
+      </div>
+
+      {/* Consulta de Historial Vehicular */}
+      <div style={{ marginTop: '30px', border: '1px solid #444', padding: '15px' }}>
+        <h3>Consultar Historial Técnico por Patente</h3>
+        <form onSubmit={handleBuscarHistorial} style={{ display: 'flex', gap: '10px' }}>
+          <input 
+            type="text" 
+            placeholder="Ingrese Patente" 
+            value={patenteBusqueda} 
+            onChange={e => setPatenteBusqueda(e.target.value.toUpperCase())} 
+            required 
+          />
+          <button type="submit">Buscar Historial</button>
+        </form>
+
+        {historial && (
+          <div style={{ marginTop: '15px', background: '#222', padding: '10px' }}>
+            <h4>Vehículo: {historial.auto.marca} {historial.auto.modelo} ({historial.auto.patente})</h4>
+            <h5>Informes de Reparación:</h5>
+            {historial.historial.length === 0 ? (
+              <p>No registra informes técnicos previos.</p>
+            ) : (
+              historial.historial.map(inf => (
+                <div key={inf.id_informe} style={{ borderBottom: '1px solid #555', margin: '10px 0', paddingBottom: '5px' }}>
+                  <p><strong>Fecha:</strong> {inf.fecha} | <strong>Estado:</strong> {inf.estado ? 'Finalizado' : 'En Proceso'}</p>
+                  <p><strong>Descripción:</strong> {inf.descripcion}</p>
+                  <p><strong>Mecánico Legajo:</strong> {inf.Empleado?.legajo} ({inf.Empleado?.nombre} {inf.Empleado?.apellido})</p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

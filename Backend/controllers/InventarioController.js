@@ -152,10 +152,30 @@ const bajaRepuesto = async (req, res) => {
 
 //  GESTIÓN PROVEEDORES 
 
-const obtenerProveedores = async (_req, res) => {
+const obtenerProveedores = async (req, res) => {
     try {
-        const proveedores = await Proveedor.findAll();
-        res.status(200).json({ proveedores });
+        let { page = 1, limit = 50 } = req.query;
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        if (limit > 50) limit = 50;
+        if (page < 1) page = 1;
+
+        const offset = (page - 1) * limit;
+
+        const { count, rows: proveedores } = await Proveedor.findAndCountAll({
+            limit,
+            offset,
+            order: [['id_proveedor', 'ASC']]
+        });
+
+        res.status(200).json({
+            totalRegistros: count,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page,
+            pageSize: proveedores.length,
+            proveedores
+        });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error al obtener proveedores', error: error.message });
     }
