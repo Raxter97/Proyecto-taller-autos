@@ -16,6 +16,10 @@ const Servicio = sequelize.define('Servicio', {
         type: DataTypes.FLOAT,
         allowNull: false
     },
+    dvh: {
+        type: DataTypes.STRING(255),
+        allowNull: false
+    },
     estado: {
         type: DataTypes.BOOLEAN,
         allowNull: false,

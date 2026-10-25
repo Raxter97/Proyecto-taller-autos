@@ -5,8 +5,9 @@ const Empleado = require('../models/Empleado');
 const Servicio = require('../models/Servicio');
 const Repuesto = require('../models/Repuesto');
 const { ServicioRealizado, RepuestoUsado } = require('../models/DetallesInforme');
+const { calcularDVH } = require('../utils/CalculosDv');
+const { actualizarDVV } = require('../utils/LogicaDvv');
 const { registrarBitacora } = require('../services/BitacoraService');
-
 
 const crearAuto = async (req, res) => {
     try {
@@ -27,18 +28,29 @@ const crearAuto = async (req, res) => {
         if (autoExistente) {
             return res.status(400).json({ mensaje: 'La patente ya está registrada.' });
         }
-
-        const nuevoAuto = await Auto.create({
-            patente,
+        const datosDVH = {
+            patente: patente.toUpperCase(),
             marca,
             modelo,
+            id_cliente: Number(id_cliente),
+            estado: true
+        };
+        const dvh = calcularDVH(datosDVH);
+
+        const nuevoAuto = await Auto.create({
+            patente: patente.toUpperCase(),
+            marca,
+            modelo,
+            id_cliente: Number(id_cliente),
             estado: true,
-            id_cliente
+            dvh
         });
+
+        await actualizarDVV(Auto, 'autos', 'id_auto');
 
         await registrarBitacora({
             accion: 'INSERT_AUTO',
-            descripcion: JSON.stringify({ previo: null, posterior: nuevoAuto }),
+            descripcion: JSON.stringify({ auto: nuevoAuto }),
             nivel_impacto: 'Media',
             id_usuario: req.user?.id_user || 1
         });
@@ -66,7 +78,17 @@ const modificarAuto = async (req, res) => {
         auto.modelo = modelo ?? auto.modelo;
         auto.estado = estado !== undefined ? estado : auto.estado;
         
+        const datosDVH = {
+            patente: auto.patente,
+            marca: auto.marca,
+            modelo: auto.modelo,
+            id_cliente: Number(auto.id_cliente),
+            estado: Boolean(auto.estado)
+        };
+        auto.dvh = calcularDVH(datosDVH);
         await auto.save();
+
+        await actualizarDVV(Auto, 'autos', 'id_auto');
 
         await registrarBitacora({
             accion: 'UPDATE_AUTO',

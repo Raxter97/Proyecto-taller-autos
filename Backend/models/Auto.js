@@ -26,6 +26,10 @@ const Auto = sequelize.define('Auto', {
         allowNull: false,
         defaultValue: true
     },
+    dvh: {
+        type: DataTypes.STRING(255),
+        allowNull: false
+    },
     id_cliente: {
         type: DataTypes.INTEGER,
         allowNull: false,

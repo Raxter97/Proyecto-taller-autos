@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { generarFactura, registrarPago } = require('../controllers/FacturaController');
 const { verificarToken } = require('../middlewares/AuthMiddleware');
-const { verificarPermiso } = require('../middlewares/rbacMiddleware');
+const { verificarPermiso } = require('../middlewares/RBACMiddleware');
 
 router.use(verificarToken);
 

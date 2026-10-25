@@ -8,7 +8,6 @@ const { RepuestoUsado, ServicioRealizado } = require('../models/DetallesInforme'
 const { calcularDVH } = require('../utils/CalculosDv');
 const { actualizarDVV } = require('../utils/LogicaDvv');
 const { registrarBitacora } = require('../services/BitacoraService');
-const sequelize = require('../config/Database');
 
 const crearInforme = async (req, res) => {
     const trans = await sequelize.transaction();

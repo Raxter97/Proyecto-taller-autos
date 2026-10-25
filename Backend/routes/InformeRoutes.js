@@ -7,7 +7,7 @@ const {
     finalizarInforme 
 } = require('../controllers/InformeController');
 const { verificarToken } = require('../middlewares/AuthMiddleware');
-const { verificarPermiso } = require('../middlewares/rbacMiddleware');
+const { verificarPermiso } = require('../middlewares/RBACMiddleware');
 
 router.use(verificarToken);
 
