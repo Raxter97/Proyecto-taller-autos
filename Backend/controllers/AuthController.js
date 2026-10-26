@@ -102,10 +102,15 @@ const registro = async(req,res)=>{
                 id_empleado: newUser.id_empleado
             }
         });
-    }catch(error){
-        console.error('DETALLE DEL ERROR EN REGISTRO:', error); //quitar
-        res.status(500).json({ mensaje: 'Error interno del servidor.', error: error.message });
-    };
+    }catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+        return res.status(400).json({ 
+            mensaje: 'El registro ya existe o viola una restricción única.', 
+            campo: error.errors[0]?.path 
+        });
+    }
+    res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+}
 };
 
 const obtenerPerfil = async(req,res)=>{

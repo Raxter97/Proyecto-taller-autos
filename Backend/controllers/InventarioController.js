@@ -11,17 +11,12 @@ const sequelize = require('../config/Database');
 const obtenerRepuestos = async (req, res) => {
     try {
         let { page = 1, limit = 50 } = req.query;
+        page = parseInt(page, 10);
+        limit = parseInt(limit, 10);
+
+        page = (isNaN(page) || page < 1) ? 1 : page;
+        limit = (isNaN(limit) || limit < 1) ? 50 : Math.min(limit, 50);
         
-        page = parseInt(page);
-        limit = parseInt(limit);
-
-        if (limit > 50) {
-            limit = 50;
-        }
-        if (page < 1) {
-            page = 1;
-        }
-
         const offset = (page - 1) * limit;
 
         const { count, rows: repuestos } = await Repuesto.findAndCountAll({
@@ -169,11 +164,11 @@ const bajaRepuesto = async (req, res) => {
 const obtenerProveedores = async (req, res) => {
     try {
         let { page = 1, limit = 50 } = req.query;
-        page = parseInt(page);
-        limit = parseInt(limit);
+        page = parseInt(page, 10);
+        limit = parseInt(limit, 10);
 
-        if (limit > 50) limit = 50;
-        if (page < 1) page = 1;
+        page = (isNaN(page) || page < 1) ? 1 : page;
+        limit = (isNaN(limit) || limit < 1) ? 50 : Math.min(limit, 50);
 
         const offset = (page - 1) * limit;
 
@@ -242,7 +237,13 @@ const crearProveedor = async (req, res) => {
         res.status(201).json({ mensaje: 'Proveedor registrado exitosamente' });
     } catch (error) {
         await trans.rollback();
-        res.status(500).json({ mensaje: 'Error al crear proveedor', error: error.message });
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({ 
+            mensaje: 'El registro ya existe o viola una restricción única.', 
+            campo: error.errors[0]?.path 
+            });
+        }
+    res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
 };
 
@@ -306,7 +307,13 @@ const actualizarProveedor = async (req, res) => {
         res.status(200).json({ mensaje: 'Proveedor actualizado correctamente' });
     } catch (error) {
         await trans.rollback();
-        res.status(500).json({ mensaje: 'Error al actualizar proveedor', error: error.message });
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({ 
+            mensaje: 'El registro ya existe o viola una restricción única.', 
+            campo: error.errors[0]?.path 
+            });
+        }
+    res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
 };
 
@@ -381,7 +388,7 @@ const registrarOrdenCompra = async (req, res) => {
             total += Number(item.cantidad) * Number(item.costo_unitario);
         }
 
-        const fecha = new Date().toISOString().split('T')[0];
+        const fecha = new Date().toLocaleDateString('en-CA');
 
         const datosDVH = {
             fecha,

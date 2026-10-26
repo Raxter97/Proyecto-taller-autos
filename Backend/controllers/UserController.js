@@ -93,7 +93,13 @@ const registrarCuentaAdmin = async (req, res) => {
         res.status(201).json({ mensaje: 'Cuenta de usuario creada y roles asignados exitosamente.' });
     } catch (error) {
         await trans.rollback();
-        res.status(500).json({ mensaje: 'Error al registrar la cuenta de usuario', error: error.message });
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({ 
+            mensaje: 'El registro ya existe o viola una restricción única.', 
+            campo: error.errors[0]?.path 
+            });
+        }
+    res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
 };
 
@@ -160,7 +166,13 @@ const modificarCuentaAdmin = async (req, res) => {
         res.status(200).json({ mensaje: 'Cuenta y roles actualizados correctamente.' });
     } catch (error) {
         await trans.rollback();
-        res.status(500).json({ mensaje: 'Error al modificar la cuenta', error: error.message });
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({ 
+            mensaje: 'El registro ya existe o viola una restricción única.', 
+            campo: error.errors[0]?.path 
+            });
+        }
+    res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
 };
 

@@ -43,13 +43,14 @@ const generarFactura = async (req, res) => {
             transaction: trans 
         });
         let totalServicios = 0;
+        
         for (const sr of serviciosRealizados) {
             const serv = await catalogoServicio.findByPk(
                 sr.id_servicio, { transaction: trans }
             );
-            if (serv){
-                totalServicios += serv.precio;
-            } 
+            if (serv && serv.estado === true) {
+                totalServicios += Number(serv.precio);
+            }
         }
 
         // Calcular total de repuestos usados

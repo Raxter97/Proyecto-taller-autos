@@ -9,10 +9,18 @@ const sequelize = require('../config/Database');
 
 const consultarParking = async (req, res) => {
     try {
+        let { page = 1, limit = 50 } = req.query;
+        page = Math.max(1, parseInt(page, 10) || 1);
+        limit = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
+        const offset = (page - 1) * limit;
+
         const plazas = await Parking.findAll({
+            limit,
+            offset,
             include: [{ model: Auto, required: false }],
             order: [['nro_lugar', 'ASC']]
         });
+        
         res.status(200).json({ plazas });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });

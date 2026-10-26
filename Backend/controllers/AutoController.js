@@ -57,8 +57,14 @@ const crearAuto = async (req, res) => {
 
         res.status(201).json({ mensaje: 'Vehículo registrado exitosamente'});
     } catch (error) {
-        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+    if (error.name === 'SequelizeUniqueConstraintError') {
+        return res.status(400).json({ 
+            mensaje: 'El registro ya existe o viola una restricción única.', 
+            campo: error.errors[0]?.path 
+        });
     }
+    res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+}
 };
 
 const modificarAuto = async (req, res) => {
@@ -99,8 +105,14 @@ const modificarAuto = async (req, res) => {
 
         res.status(200).json({ mensaje: 'Vehículo actualizado correctamente'});
     } catch (error) {
-        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+    if (error.name === 'SequelizeUniqueConstraintError') {
+        return res.status(400).json({ 
+            mensaje: 'El registro ya existe o viola una restricción única.', 
+            campo: error.errors[0]?.path 
+        });
     }
+    res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+}
 };
 
 const consultarHistorial = async (req, res) => {

@@ -8,13 +8,21 @@ const sequelize = require('../config/Database');
 
 const consultarTurnos = async (req, res) => {
     try {
+        let { page = 1, limit = 50 } = req.query;
+        page = Math.max(1, parseInt(page, 10) || 1);
+        limit = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
+        const offset = (page - 1) * limit;
+
         const turnos = await Turno.findAll({
+            limit,
+            offset,
             include: [
                 { model: Cliente, attributes: ['nombre', 'apellido', 'dni'] },
                 { model: Auto, attributes: ['patente', 'marca', 'modelo'] }
             ],
             order: [['fecha_hora', 'ASC']]
         });
+        
         res.status(200).json({ turnos });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
@@ -31,15 +39,27 @@ const agendarTurno = async (req, res) => {
         }
 
         const cliente = await Cliente.findByPk(id_cliente, { transaction: trans });
-        if (!cliente || !cliente.estado) {
+        if (!cliente) {
             await trans.rollback();
-            return res.status(400).json({ mensaje: 'El cliente no existe o se encuentra inactivo.' });
+            return res.status(400).json({ mensaje: 'El cliente no existe.' });
+        }
+        if (!cliente.estado) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'El cliente se encuentra inactivo.' });
         }
 
         const auto = await Auto.findByPk(id_auto, { transaction: trans });
-        if (!auto || !auto.estado) {
+        if (!auto) {
             await trans.rollback();
-            return res.status(400).json({ mensaje: 'El vehículo no existe o se encuentra inactivo.' });
+            return res.status(400).json({ mensaje: 'El vehículo no existe .' });
+        }
+        if (!auto.estado) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'El vehículo se encuentra inactivo.' });
+        }
+
+        if (Number(auto.id_cliente) !== Number(id_cliente)) {
+           return res.status(400).json({ mensaje: 'El vehículo seleccionado no pertenece al cliente indicado.' });
         }
 
         const estadoTurno = 'Agendado';

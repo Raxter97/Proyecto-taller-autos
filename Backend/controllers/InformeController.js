@@ -42,7 +42,7 @@ const crearInforme = async (req, res) => {
             return res.status(400).json({ mensaje: 'Empleado inactivo.' });
         }
 
-        const fecha = new Date().toISOString().split('T')[0];
+        const fecha = new Date().toLocaleDateString('en-CA');
         const estado = false; 
 
         const datosDVH = { 

@@ -5,4 +5,11 @@ const limpiarDatosUsuario = (userInstance) => {
     return data;
 };
 
-module.exports = { limpiarDatosUsuario };
+const parsearBoolean = (valBoolean) => {
+    if (typeof valBoolean === 'string') {
+        return valBoolean.toLowerCase() === 'true';
+    }
+    return Boolean(valBoolean);
+};
+
+module.exports = { limpiarDatosUsuario, parsearBoolean };
