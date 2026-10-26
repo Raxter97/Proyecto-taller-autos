@@ -23,19 +23,37 @@ const login = async(req,res) =>{
             return res.status(401).json({ mensaje: 'Datos inválidos' });
         };
         if(!user.estado){
-            return res.status(401).json({ mensaje: 'User inestado' });    
+            return res.status(401).json({ mensaje: 'User inactivo' });    
+        };
+
+        if (user.bloqueado_hasta && new Date() < new Date(user.bloqueado_hasta)) {
+            return res.status(403).json({ 
+                mensaje: 'Cuenta bloqueada temporalmente por 15 minutos debido a múltiples intentos fallidos.' 
+            });
         };
 
         const passtemporal = await comparePassword(password, user.password_hash)
         if(!passtemporal){
+            user.intentos_fallidos += 1;
+            if (user.intentos_fallidos >= 3) {
+                user.bloqueado_hasta = new Date(Date.now() + 15 * 60 * 1000); 
+                await user.save();
+                return res.status(403).json({ 
+                    mensaje: 'Demasiados intentos fallidos. Cuenta bloqueada por 15 minutos.' 
+                });
+            }
+            await user.save();
             return res.status(401).json({ mensaje: 'Datos inválidos' });
         };
-
+        user.intentos_fallidos = 0;
+        user.bloqueado_hasta = null;
+        await user.save();
+        
         const datosDVH = {
             email: user.email,
             password_hash: user.password_hash,
             estado: Boolean(user.estado),
-            id_empleado: user.id_empleado || null //quitar como opcion el null
+            id_empleado: user.id_empleado || null //quitar el null
         };
         const nuevohash= calcularDVH(datosDVH);
         if(user.dvh != nuevohash ){
@@ -49,7 +67,7 @@ const login = async(req,res) =>{
             id_usuario: user.id_user
         });
         const token = jwt.sign({id_user: user.id_user, email: user.email,id_empleado: user.id_empleado}, 
-            process.env.JWT_SECRET || 'secreto',{expiresIn: '15m'});
+        process.env.JWT_SECRET || 'secreto',{expiresIn: '15m'});
         
         res.status(200).json({mensaje:'Inicio de sesion exitoso',token});
     }catch(error){

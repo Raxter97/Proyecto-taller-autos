@@ -38,6 +38,15 @@ const User = sequelize.define('User',{
         allowNull:false,
         defaultValue: true
     },
+    intentos_fallidos: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        allowNull: false
+    },
+    bloqueado_hasta: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
     id_empleado:{
         type: DataTypes.INTEGER,
         allowNull:true, //cambiar a false en otro momento
