@@ -2,6 +2,9 @@ const Turno = require('../models/Turno');
 const Cliente = require('../models/Cliente');
 const Auto = require('../models/Auto');
 const { registrarBitacora } = require('../services/BitacoraService');
+const { calcularDVH } = require('../utils/CalculosDv');
+const { actualizarDVV } = require('../utils/LogicaDvv');
+const sequelize = require('../config/Database');
 
 const consultarTurnos = async (req, res) => {
     try {
@@ -19,91 +22,137 @@ const consultarTurnos = async (req, res) => {
 };
 
 const agendarTurno = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { fecha_hora, id_cliente, id_auto } = req.body;
         if (!fecha_hora || !id_cliente || !id_auto) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'Fecha, hora, cliente y vehículo son obligatorios.' });
         }
 
-        const cliente = await Cliente.findByPk(id_cliente);
+        const cliente = await Cliente.findByPk(id_cliente, { transaction: trans });
         if (!cliente || !cliente.estado) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'El cliente no existe o se encuentra inactivo.' });
         }
 
-        const auto = await Auto.findByPk(id_auto);
+        const auto = await Auto.findByPk(id_auto, { transaction: trans });
         if (!auto || !auto.estado) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'El vehículo no existe o se encuentra inactivo.' });
         }
 
+        const estadoTurno = 'Agendado';
+        const datosDVH = {
+            estado: estadoTurno,
+            fecha_hora,
+            id_auto: Number(id_auto),
+            id_cliente: Number(id_cliente)
+        };
+        const dvh = calcularDVH(datosDVH);
+
         const nuevoTurno = await Turno.create({
             fecha_hora,
-            estado: 'Agendado',
-            id_cliente,
-            id_auto
-        });
+            estado: estadoTurno,
+            id_cliente: Number(id_cliente),
+            id_auto: Number(id_auto),
+            dvh
+        }, { transaction: trans });
+
+        await actualizarDVV(Turno, 'turnos', 'id_turno', { transaction: trans });
 
         await registrarBitacora({
             accion: 'INSERT_TURNO',
-            descripcion: JSON.stringify({ Turno : nuevoTurno }),
+            descripcion: JSON.stringify({ Turno: nuevoTurno }),
             nivel_impacto: 'Media',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
+        await trans.commit();
         res.status(201).json({ mensaje: 'Turno agendado exitosamente' });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
 };
 
 const reprogramarTurno = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { id } = req.params;
         const { fecha_hora } = req.body;
 
-        const turno = await Turno.findByPk(id);
+        const turno = await Turno.findByPk(id, { transaction: trans });
         if (!turno) {
+            await trans.rollback();
             return res.status(404).json({ mensaje: 'Turno no encontrado.' });
         }
 
         const estadoPrevio = turno.toJSON();
         turno.fecha_hora = fecha_hora ?? turno.fecha_hora;
         turno.estado = 'Confirmado';
-        await turno.save();
+
+        const datosDVH = {
+            estado: turno.estado,
+            fecha_hora: turno.fecha_hora,
+            id_auto: Number(turno.id_auto),
+            id_cliente: Number(turno.id_cliente)
+        };
+        turno.dvh = calcularDVH(datosDVH);
+        await turno.save({ transaction: trans });
+
+        await actualizarDVV(Turno, 'turnos', 'id_turno', { transaction: trans });
 
         await registrarBitacora({
             accion: 'UPDATE_TURNO',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: turno.toJSON() }),
             nivel_impacto: 'Media',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
-        res.status(200).json({ mensaje: 'Turno reprogramado correctamente'});
+        await trans.commit();
+        res.status(200).json({ mensaje: 'Turno reprogramado correctamente' });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
 };
 
 const cancelarTurno = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { id } = req.params;
-        const turno = await Turno.findByPk(id);
+        const turno = await Turno.findByPk(id, { transaction: trans });
         if (!turno) {
+            await trans.rollback();
             return res.status(404).json({ mensaje: 'Turno no encontrado.' });
         }
 
         const estadoPrevio = turno.toJSON();
         turno.estado = 'Cancelado';
-        await turno.save();
+
+        const datosDVH = {
+            estado: turno.estado,
+            fecha_hora: turno.fecha_hora,
+            id_auto: Number(turno.id_auto),
+            id_cliente: Number(turno.id_cliente)
+        };
+        turno.dvh = calcularDVH(datosDVH);
+        await turno.save({ transaction: trans });
+
+        await actualizarDVV(Turno, 'turnos', 'id_turno', { transaction: trans });
 
         await registrarBitacora({
             accion: 'CANCEL_TURNO',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: turno.toJSON() }),
             nivel_impacto: 'Baja',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
+        await trans.commit();
         res.status(200).json({ mensaje: 'Turno cancelado correctamente' });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
 };

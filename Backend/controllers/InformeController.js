@@ -43,9 +43,15 @@ const crearInforme = async (req, res) => {
         }
 
         const fecha = new Date().toISOString().split('T')[0];
-        const estado = false; // False = En Proceso
+        const estado = false; 
 
-        const datosDVH = { descripcion, estado: false, fecha, id_auto: Number(id_auto), id_empleado: Number(id_empleado) };
+        const datosDVH = { 
+            descripcion, 
+            estado: false, 
+            fecha, 
+            id_auto: Number(id_auto), 
+            id_empleado: Number(id_empleado) 
+        };
         const dvh = calcularDVH(datosDVH);
 
         const nuevoInforme = await Informe.create({
@@ -69,13 +75,13 @@ const crearInforme = async (req, res) => {
             await turnoAsociado.save({ transaction: trans });
         }
 
-        await actualizarDVV(Informe, 'informes', 'id_informe');
+        await actualizarDVV(Informe, 'informes', 'id_informe', { transaction: trans });
         await registrarBitacora({
             accion: 'INSERT_INFORME',
             descripcion: JSON.stringify({ informe: nuevoInforme }),
             nivel_impacto: 'Media',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
         await trans.commit();
         res.status(201).json({ mensaje: 'Informe abierto exitosamente y turno marcado como atendido' });
@@ -91,16 +97,33 @@ const imputarRepuesto = async (req, res) => {
         const { id_informe } = req.params;
         const { id_repuesto, cantidad } = req.body;
 
-        const informe = await Informe.findByPk(id_informe, { transaction: trans });
-        if (!informe || informe.estado === true) {
+        const informe = await Informe.findByPk(
+            id_informe,
+             { transaction: trans }
+            );
+        if (!informe ) {
             await trans.rollback();
-            return res.status(400).json({ mensaje: 'Informe no encontrado o ya finalizado.' });
+            return res.status(400).json({ mensaje: 'Informe no encontrado.' });
+        }
+        if (informe.estado === true) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'Informe finalizado.' });
         }
 
-        const repuesto = await Repuesto.findByPk(id_repuesto, { transaction: trans });
-        if (!repuesto || !repuesto.estado || repuesto.stock < cantidad) {
+        const repuesto = await Repuesto.findByPk(
+            id_repuesto, 
+            { transaction: trans }
+        );
+        if (!repuesto ) {
             await trans.rollback();
-            return res.status(400).json({ mensaje: 'Repuesto inválido o stock insuficiente.' });
+            return res.status(400).json({ mensaje: 'Repuesto inválido .' });
+        }
+        if (!repuesto.estado) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'Repuesto no encontrado.' });
+        }if (repuesto.stock < cantidad) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'Stock insuficiente.' });
         }
 
         repuesto.stock -= Number(cantidad);
@@ -122,13 +145,13 @@ const imputarRepuesto = async (req, res) => {
         informe.dvh = calcularDVH(datosDVH);
         await informe.save({ transaction: trans });
 
-        await actualizarDVV(Informe, 'informes', 'id_informe');
+        await actualizarDVV(Informe, 'informes', 'id_informe', { transaction: trans });
         await registrarBitacora({
             accion: 'INSERT_REPUESTO_USADO',
             descripcion: JSON.stringify({ id_informe, id_repuesto, cantidad }),
             nivel_impacto: 'Media',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
         await trans.commit();
         res.status(200).json({ mensaje: 'Repuesto imputado correctamente', repuestoUsado });
@@ -139,50 +162,64 @@ const imputarRepuesto = async (req, res) => {
 };
 
 const imputarServicio = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { id_informe } = req.params;
         const { id_servicio } = req.body;
 
         const informe = await Informe.findByPk(id_informe);
-        if (!informe || informe.estado === true) {
-            return res.status(400).json({ mensaje: 'Informe no encontrado o ya finalizado.' });
+        if (!informe ) {
+            return res.status(400).json({ mensaje: 'Informe no encontrado.' });
+        }
+        if (informe.estado === true) {
+            return res.status(400).json({ mensaje: 'Informe ya finalizado.' });
         }
 
         const servicioRealizado = await ServicioRealizado.create({
             id_informe: Number(id_informe),
             id_servicio: Number(id_servicio)
-        });
+        }, { transaction: trans });
 
         await registrarBitacora({
             accion: 'INSERT_SERVICIO_REALIZADO',
             descripcion: JSON.stringify({ id_informe, id_servicio }),
             nivel_impacto: 'Baja',
-            id_usuario: req.user?.id_user || 1
-        });
-
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
         res.status(201).json({ mensaje: 'Servicio imputado correctamente', servicioRealizado });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error al imputar servicio', error: error.message });
     }
 };
 
 const finalizarInforme = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { id_informe } = req.params;
-        const informe = await Informe.findByPk(id_informe);
+        const informe = await Informe.findByPk(id_informe, { transaction: trans });
 
-        if (!informe || informe.estado === true) {
-            return res.status(400).json({ mensaje: 'Informe no encontrado o ya finalizado.' });
+        if (!informe ) {
+            return res.status(400).json({ mensaje: 'Informe no encontrado.' });
+        }
+        if (informe.estado === true) {
+            return res.status(400).json({ mensaje: 'Informe ya finalizado.' });
         }
 
-        const cantServicios = await ServicioRealizado.count({ where: { id_informe } });
-        const cantRepuestos = await RepuestoUsado.count({ where: { id_informe } });
+
+        const cantServicios = await ServicioRealizado.count({ 
+            where: { id_informe } 
+        });
+        const cantRepuestos = await RepuestoUsado.count({ 
+            where: { id_informe } 
+        });
 
         if (cantServicios === 0 && cantRepuestos === 0) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'El informe debe tener al menos un servicio o repuesto para finalizar.' });
         }
 
-        informe.estado = true; // True = Finalizado[cite: 39]
+        informe.estado = true; 
         const datosDVH = {
             descripcion: informe.descripcion,
             estado: true,
@@ -191,18 +228,19 @@ const finalizarInforme = async (req, res) => {
             id_empleado: informe.id_empleado
         };
         informe.dvh = calcularDVH(datosDVH);
-        await informe.save();
+        await informe.save({ transaction: trans });
 
-        await actualizarDVV(Informe, 'informes', 'id_informe');
+        await actualizarDVV(Informe, 'informes', 'id_informe', { transaction: trans });
         await registrarBitacora({
             accion: 'FINALIZAR_INFORME',
             descripcion: JSON.stringify({ id_informe }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
         res.status(200).json({ mensaje: 'Informe técnico finalizado correctamente', informe });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error al finalizar informe', error: error.message });
     }
 };

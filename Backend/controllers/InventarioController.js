@@ -1,7 +1,7 @@
 const Repuesto = require('../models/Repuesto');
 const Proveedor = require('../models/Proveedor');
 const { registrarBitacora } = require('../services/BitacoraService');
-const { CompraRepuestos, DetalleCompra } = require('../models/DetallesCompra'); // Ajusta la ruta de tu modelo si es distinta
+const { CompraRepuestos, DetalleCompra } = require('../models/DetallesCompra');
 const { calcularDVH } = require('../utils/CalculosDv');
 const { actualizarDVV } = require('../utils/LogicaDvv');
 const sequelize = require('../config/Database');
@@ -10,7 +10,6 @@ const sequelize = require('../config/Database');
 
 const obtenerRepuestos = async (req, res) => {
     try {
-        // Extraer parámetros de la URL 
         let { page = 1, limit = 50 } = req.query;
         
         page = parseInt(page);
@@ -23,7 +22,6 @@ const obtenerRepuestos = async (req, res) => {
             page = 1;
         }
 
-        // Calcular el desplazamiento (offset)
         const offset = (page - 1) * limit;
 
         const { count, rows: repuestos } = await Repuesto.findAndCountAll({
@@ -45,9 +43,11 @@ const obtenerRepuestos = async (req, res) => {
 };
 
 const crearRepuesto = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { descripcion, stock } = req.body;
         if (!descripcion) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'La descripción del repuesto es obligatoria.' });
         }
         const stockInicial = Number(stock) || 0;
@@ -64,29 +64,35 @@ const crearRepuesto = async (req, res) => {
             stock: stockInicial,
             estado: true,
             dvh
-        });
-        await actualizarDVV(Repuesto, 'repuestos', 'id_repuesto');
+        }, { transaction: trans });
 
+        await actualizarDVV(Repuesto, 'repuestos', 'id_repuesto', { transaction: trans });
         await registrarBitacora({
             accion: 'INSERT_REPUESTO',
             descripcion: JSON.stringify({ repuesto_creado: nuevoRepuesto }),
             nivel_impacto: 'Media',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
+        await trans.commit();
         res.status(201).json({ mensaje: 'Repuesto creado exitosamente' });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error al crear repuesto', error: error.message });
     }
 };
 
 const actualizarRepuesto = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { id } = req.params;
         const { descripcion, stock } = req.body;
 
-        const repuesto = await Repuesto.findByPk(id);
-        if (!repuesto) return res.status(404).json({ mensaje: 'Repuesto no encontrado.' });
+        const repuesto = await Repuesto.findByPk(id, { transaction: trans });
+        if (!repuesto) {
+            await trans.rollback();
+            return res.status(404).json({ mensaje: 'Repuesto no encontrado.' });
+        }
 
         const previo = repuesto.toJSON();
         if (descripcion !== undefined){
@@ -102,27 +108,33 @@ const actualizarRepuesto = async (req, res) => {
         };
         repuesto.dvh = calcularDVH(datosDVH);
 
-        await repuesto.save();
-        await actualizarDVV(Repuesto, 'repuestos', 'id_repuesto');
+        await repuesto.save({ transaction: trans });
+        await actualizarDVV(Repuesto, 'repuestos', 'id_repuesto', { transaction: trans });
 
         await registrarBitacora({
             accion: 'UPDATE_REPUESTO',
             descripcion: JSON.stringify({ previo, posterior: repuesto.toJSON() }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
+        await trans.commit();
         res.status(200).json({ mensaje: 'Repuesto actualizado correctamente' });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error al actualizar repuesto', error: error.message });
     }
 };
 
 const bajaRepuesto = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { id } = req.params;
-        const repuesto = await Repuesto.findByPk(id);
-        if (!repuesto) return res.status(404).json({ mensaje: 'Repuesto no encontrado.' });
+        const repuesto = await Repuesto.findByPk(id, { transaction: trans });
+        if (!repuesto) {
+            await trans.rollback();
+            return res.status(404).json({ mensaje: 'Repuesto no encontrado.' });
+        }
 
         const previo = repuesto.toJSON();
         repuesto.estado = false; // Soft-delete
@@ -134,23 +146,25 @@ const bajaRepuesto = async (req, res) => {
         };
         repuesto.dvh = calcularDVH(datosDVH);
 
-        await repuesto.save();
-        await actualizarDVV(Repuesto, 'repuestos', 'id_repuesto');
+        await repuesto.save({ transaction: trans });
+        await actualizarDVV(Repuesto, 'repuestos', 'id_repuesto', { transaction: trans });
 
         await registrarBitacora({
             accion: 'DELETE_LOGICO_REPUESTO',
             descripcion: JSON.stringify({ previo, posterior: repuesto.toJSON() }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
+        await trans.commit();
         res.status(200).json({ mensaje: 'Repuesto dado de baja correctamente.' });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error al dar de baja el repuesto', error: error.message });
     }
 };
 
-//  GESTIÓN PROVEEDORES 
+// GESTIÓN PROVEEDORES 
 
 const obtenerProveedores = async (req, res) => {
     try {
@@ -182,16 +196,20 @@ const obtenerProveedores = async (req, res) => {
 };
 
 const crearProveedor = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { razon_social, direccion, telefono, email } = req.body;
         if (!razon_social || !direccion || !telefono || !email) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'Todos los campos del proveedor son obligatorios.' });
         }
 
         const existente = await Proveedor.findOne({ 
-            where: { razon_social } 
+            where: { razon_social },
+            transaction: trans 
         });
         if (existente) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'Ya existe un proveedor con esa Razón Social.' });
         }
         const datosDVH = { 
@@ -203,37 +221,50 @@ const crearProveedor = async (req, res) => {
         };
         const dvh = calcularDVH(datosDVH);
 
-        const nuevoProveedor = await Proveedor.create({ razon_social, direccion, telefono, email, estado: true, dvh });
-        await actualizarDVV(Proveedor, 'proveedor', 'id_proveedor');
-        
+        const nuevoProveedor = await Proveedor.create({ 
+            razon_social, 
+            direccion, 
+            telefono, 
+            email, 
+            estado: true, 
+            dvh 
+        }, { transaction: trans });
+
+        await actualizarDVV(Proveedor, 'proveedor', 'id_proveedor', { transaction: trans });
         await registrarBitacora({
             accion: 'INSERT_PROVEEDOR',
             descripcion: JSON.stringify({ proveedor_creado: nuevoProveedor }),
             nivel_impacto: 'Media',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
+        await trans.commit();
         res.status(201).json({ mensaje: 'Proveedor registrado exitosamente' });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error al crear proveedor', error: error.message });
     }
 };
 
 const actualizarProveedor = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { id } = req.params;
         const { razon_social, direccion, telefono, email } = req.body;
 
-        const proveedor = await Proveedor.findByPk(id);
+        const proveedor = await Proveedor.findByPk(id, { transaction: trans });
         if (!proveedor){
+            await trans.rollback();
             return res.status(404).json({ mensaje: 'Proveedor no encontrado.' });
         } 
         
         if (razon_social !== undefined && razon_social !== proveedor.razon_social) {
             const existente = await Proveedor.findOne({ 
-                where: { razon_social } 
+                where: { razon_social },
+                transaction: trans 
             });
             if (existente && existente.id_proveedor !== Number(id)) {
+                await trans.rollback();
                 return res.status(400).json({ mensaje: 'La razón social ya pertenece a otro proveedor.' });
             }
         }
@@ -261,27 +292,33 @@ const actualizarProveedor = async (req, res) => {
         };
         proveedor.dvh = calcularDVH(datosDVH);
                 
-        await proveedor.save();
-        await actualizarDVV(Proveedor, 'proveedor', 'id_proveedor');
+        await proveedor.save({ transaction: trans });
+        await actualizarDVV(Proveedor, 'proveedor', 'id_proveedor', { transaction: trans });
         
         await registrarBitacora({
             accion: 'UPDATE_PROVEEDOR',
             descripcion: JSON.stringify({ previo, posterior: proveedor.toJSON() }),
             nivel_impacto: 'Baja',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
+        await trans.commit();
         res.status(200).json({ mensaje: 'Proveedor actualizado correctamente' });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error al actualizar proveedor', error: error.message });
     }
 };
 
 const bajaProveedor = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { id } = req.params;
-        const proveedor = await Proveedor.findByPk(id);
-        if (!proveedor) return res.status(404).json({ mensaje: 'Proveedor no encontrado.' });
+        const proveedor = await Proveedor.findByPk(id, { transaction: trans });
+        if (!proveedor) {
+            await trans.rollback();
+            return res.status(404).json({ mensaje: 'Proveedor no encontrado.' });
+        }
 
         const previo = proveedor.toJSON();
         proveedor.estado = false;
@@ -295,19 +332,20 @@ const bajaProveedor = async (req, res) => {
         };
         proveedor.dvh = calcularDVH(datosDVH);
 
-        await proveedor.save();
-
-        await actualizarDVV(Proveedor, 'proveedor', 'id_proveedor');
+        await proveedor.save({ transaction: trans });
+        await actualizarDVV(Proveedor, 'proveedor', 'id_proveedor', { transaction: trans });
 
         await registrarBitacora({
             accion: 'DELETE_LOGICO_PROVEEDOR',
             descripcion: JSON.stringify({ previo, posterior: proveedor.toJSON() }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
+        await trans.commit();
         res.status(200).json({ mensaje: 'Proveedor dado de baja correctamente.' });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error al dar de baja proveedor', error: error.message });
     }
 };
@@ -318,7 +356,6 @@ const registrarOrdenCompra = async (req, res) => {
     const trans = await sequelize.transaction();
     try {
         const { id_proveedor, items } = req.body; 
-        // items: [{ id_repuesto, cantidad, costo_unitario }]
 
         if (!id_proveedor || !items || !items.length) {
             await trans.rollback();
@@ -330,7 +367,7 @@ const registrarOrdenCompra = async (req, res) => {
             { transaction: trans }
         );
         
-        if (!proveedor ) {
+        if (!proveedor) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Proveedor inválido' });
         }
@@ -369,13 +406,13 @@ const registrarOrdenCompra = async (req, res) => {
             }, { transaction: trans });
         }
 
-        await actualizarDVV(CompraRepuestos, 'compra_repuestos', 'id_compra');
+        await actualizarDVV(CompraRepuestos, 'compra_repuestos', 'id_compra', { transaction: trans });
         await registrarBitacora({
             accion: 'INSERT_ORDEN_COMPRA',
             descripcion: JSON.stringify({ id_compra: nuevaCompra.id_compra, total, items }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
         await trans.commit();
         res.status(201).json({ mensaje: 'Orden de compra registrada con éxito' });
@@ -398,8 +435,6 @@ const confirmarRecepcionMercaderia = async (req, res) => {
             await trans.rollback();
             return res.status(404).json({ mensaje: 'Orden de compra no encontrada.' });
         }
-
-        const recepcionRegistrada = await registrarBitacora.findOne ? null : null; 
 
         const detalles = await DetalleCompra.findAll({ 
             where: { id_compra }, 
@@ -424,14 +459,14 @@ const confirmarRecepcionMercaderia = async (req, res) => {
                 await repuesto.save({ transaction: trans });
             }
         }
-        await actualizarDVV(Repuesto, 'repuestos', 'id_repuesto');
+        await actualizarDVV(Repuesto, 'repuestos', 'id_repuesto', { transaction: trans });
 
         await registrarBitacora({
             accion: 'RECEPCION_MERCADERIA',
             descripcion: JSON.stringify({ id_compra, estado: 'Recibida' }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user?.id_user || 1
-        });
+            id_usuario: req.user.id_user
+        }, { transaction: trans });
 
         await trans.commit();
         res.status(200).json({ mensaje: 'Recepción de mercadería confirmada. Stock actualizado correctamente.' });

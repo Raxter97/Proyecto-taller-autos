@@ -52,7 +52,7 @@ const crearAuto = async (req, res) => {
             accion: 'INSERT_AUTO',
             descripcion: JSON.stringify({ auto: nuevoAuto }),
             nivel_impacto: 'Media',
-            id_usuario: req.user?.id_user || 1
+            id_usuario: req.user.id_user
         });
 
         res.status(201).json({ mensaje: 'Vehículo registrado exitosamente'});
@@ -94,7 +94,7 @@ const modificarAuto = async (req, res) => {
             accion: 'UPDATE_AUTO',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: auto.toJSON() }),
             nivel_impacto: 'Baja',
-            id_usuario: req.user?.id_user || 1
+            id_usuario: req.user.id_user
         });
 
         res.status(200).json({ mensaje: 'Vehículo actualizado correctamente'});
@@ -151,4 +151,41 @@ const consultarHistorial = async (req, res) => {
     }
 };
 
-module.exports = { crearAuto, modificarAuto, consultarHistorial };
+const desactivarAuto = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const auto = await Auto.findByPk(id);
+        if (!auto) {
+            return res.status(404).json({ mensaje: 'Vehículo no encontrado.' });
+        }
+
+        const estadoPrevio = auto.toJSON();
+        auto.estado = false; 
+
+        const datosDVH = {
+            patente: auto.patente,
+            marca: auto.marca,
+            modelo: auto.modelo,
+            id_cliente: Number(auto.id_cliente),
+            estado: false
+        };
+        auto.dvh = calcularDVH(datosDVH);
+        await auto.save();
+
+        await actualizarDVV(Auto, 'autos', 'id_auto');
+        await registrarBitacora({
+            accion: 'BAJA_LOGICA_AUTO',
+            descripcion: JSON.stringify({ previo: estadoPrevio, posterior: auto.toJSON() }),
+            nivel_impacto: 'Alta',
+            id_usuario: req.user.id_user
+        });
+
+        res.status(200).json({ mensaje: 'Vehículo dado de baja lógica correctamente' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+    }
+};
+
+
+
+module.exports = { crearAuto, modificarAuto, consultarHistorial,desactivarAuto  };

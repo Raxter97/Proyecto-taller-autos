@@ -37,7 +37,7 @@ const crearServicio = async (req, res) => {
             accion: 'INSERT_SERVICIO',
             descripcion: JSON.stringify({ servicio: nuevoServicio }),
             nivel_impacto: 'Baja',
-            id_usuario: req.user?.id_user || 1
+            id_usuario: req.user.id_user
         });
 
         res.status(201).json({ mensaje: 'Servicio creado correctamente'});
@@ -81,7 +81,7 @@ const modificarServicio = async (req, res) => {
             accion: 'UPDATE_SERVICIO',
             descripcion: JSON.stringify({ previo, posterior: servicio.toJSON() }),
             nivel_impacto: 'Baja',
-            id_usuario: req.user?.id_user || 1
+            id_usuario: req.user.id_user
         });
 
         res.status(200).json({ mensaje: 'Servicio actualizado correctamente'});
@@ -90,4 +90,37 @@ const modificarServicio = async (req, res) => {
     }
 };
 
-module.exports = { obtenerServicios, crearServicio, modificarServicio };
+const desactivarServicio = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const servicio = await Servicio.findByPk(id);
+        if (!servicio) {
+            return res.status(404).json({ mensaje: 'Servicio no encontrado.' });
+        }
+
+        const estadoPrevio = servicio.toJSON();
+        servicio.estado = false; 
+
+        const datosDVH = {
+            descripcion: servicio.descripcion,
+            precio: Number(servicio.precio).toFixed(2),
+            estado: false
+        };
+        servicio.dvh = calcularDVH(datosDVH);
+        await servicio.save();
+
+        await actualizarDVV(Servicio, 'servicios', 'id_servicio');
+        await registrarBitacora({
+            accion: 'BAJA_LOGICA_SERVICIO',
+            descripcion: JSON.stringify({ previo: estadoPrevio, posterior: servicio.toJSON() }),
+            nivel_impacto: 'Alta',
+            id_usuario: req.user.id_user
+        });
+
+        res.status(200).json({ mensaje: 'Servicio dado de baja lógica correctamente' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+    }
+};
+
+module.exports = { obtenerServicios, crearServicio, modificarServicio,desactivarServicio };
