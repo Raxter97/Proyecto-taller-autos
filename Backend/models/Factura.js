@@ -31,7 +31,9 @@ const Factura = sequelize.define('Factura', {
         type: DataTypes.INTEGER,
         allowNull: false,
         unique: true, 
-        references: { model: 'informes', key: 'id_informe' }
+        references: { 
+            model: 'informes', 
+            key: 'id_informe' }
     }
 }, {
     tableName: 'facturas',

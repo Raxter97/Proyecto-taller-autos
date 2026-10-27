@@ -10,9 +10,9 @@ const AutoRoutes = require('./routes/AutoRoutes');
 const ParkingRoutes = require('./routes/ParkingRoutes');
 const TurnoRoutes = require('./routes/TurnoRoutes');
 const InventarioRoutes = require('./routes/InventarioRoutes');
-const servicioRoutes = require('./routes/ServicioRoutes');
+const ServicioRoutes = require('./routes/ServicioRoutes');
 const informeRoutes = require('./routes/InformeRoutes');
-const facturaRoutes = require('./routes/FacturaRoutes');
+const FacturaRoutes = require('./routes/FacturaRoutes');
 const UserRoutes = require('./routes/UserRoutes');
 const BitacoraRoutes = require('./routes/BitacoraRoutes');
 

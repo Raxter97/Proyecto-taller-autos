@@ -28,12 +28,18 @@ const Informe = sequelize.define('Informe', {
     id_auto: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: { model: 'autos', key: 'id_auto' }
+        references: { 
+            model: 'autos', 
+            key: 'id_auto' 
+        }
     },
     id_empleado: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: { model: 'empleados', key: 'id_empleado' }
+        references: { 
+            model: 'empleados', 
+            key: 'id_empleado' 
+        }
     }
 }, {
     tableName: 'informes',

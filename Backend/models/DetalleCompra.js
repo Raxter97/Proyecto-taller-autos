@@ -26,7 +26,8 @@ const DetalleCompra = sequelize.define('DetalleCompra', {
     id_repuesto: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: { model: 'repuestos', 
+        references: { 
+        model: 'repuestos', 
             key: 'id_repuesto' 
         }
     }

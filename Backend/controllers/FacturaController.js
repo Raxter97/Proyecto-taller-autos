@@ -1,7 +1,7 @@
 const sequelize = require('../config/Database');
 const Factura = require('../models/Factura');
 const Informe = require('../models/Informe');
-const { ServicioRealizado, RepuestoUsado } = require('../models/DetallesInforme');
+const { ServicioRealizado, RepuestoUsado } = require('../models/DetalleInforme');
 const catalogoServicio = require('../models/Servicio');
 const Repuesto = require('../models/Repuesto');
 const Parking = require('../models/Parking');

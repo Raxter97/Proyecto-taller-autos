@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { apiCall } from '../Api';
+import { apiCall } from '../../Api';
 
 export default function Inventario() {
   const [repuestos, setRepuestos] = useState([]);

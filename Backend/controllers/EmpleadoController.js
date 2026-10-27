@@ -4,7 +4,6 @@ const Informe = require('../models/Informe');
 const { calcularDVH } = require('../utils/CalculosDv');
 const { actualizarDVV } = require('../utils/LogicaDvv');
 const { registrarBitacora } = require('../services/BitacoraService');
-const sequelize = require('../config/Database');
 
 const obtenerEmpleados = async (req, res) => {
     try {

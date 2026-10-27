@@ -19,11 +19,11 @@ require('./models/Servicio');
 require('./models/Proveedor');
 require('./models/Informe');
 require('./models/Factura'); 
-require('./models/DetallesInforme'); 
-require('./models/CompraRepuestos'); 
+require('./models/DetalleInforme'); 
+require('./models/CompraRepuesto'); 
 require('./models/DetalleCompra'); 
 
-const { User, Permiso, Parking, Servicio, Repuesto, Rol, ServicioRealizado, RepuestoUsado, Bitacora, Cliente, Empleado, Auto, Turno, CompraRepuestos, DetalleCompra, Proveedor, Informe, Factura } = sequelize.models;
+const { User, Permiso, Parking, Servicio, Repuesto, Rol, ServicioRealizado, RepuestoUsado, Bitacora, Cliente, Empleado, Auto, Turno, CompraRepuesto, DetalleCompra, Proveedor, Informe, Factura } = sequelize.models;
 
 Auto.belongsTo(Cliente, { foreignKey: 'id_cliente', as: 'cliente' });
 Auto.hasMany(Informe, { foreignKey: 'id_auto', as: 'informes' });
@@ -34,11 +34,10 @@ Bitacora.belongsTo(User, { foreignKey: 'id_usuario', as: 'usuario' });
 
 Cliente.hasMany(Auto, { foreignKey: 'id_cliente', as: 'autos' });
 Cliente.hasMany(Turno, { foreignKey: 'id_cliente', as: 'turnos' });
+CompraRepuesto.belongsTo(Proveedor, { foreignKey: 'id_proveedor', as: 'proveedor' });
+CompraRepuesto.hasMany(DetalleCompra, { foreignKey: 'id_compra', as: 'detalles' });
 
-CompraRepuestos.belongsTo(Proveedor, { foreignKey: 'id_proveedor', as: 'proveedor' });
-CompraRepuestos.hasMany(DetalleCompra, { foreignKey: 'id_compra', as: 'detalles' });
-
-DetalleCompra.belongsTo(CompraRepuestos, { foreignKey: 'id_compra', as: 'compra' });
+DetalleCompra.belongsTo(CompraRepuesto, { foreignKey: 'id_compra', as: 'compra' });
 DetalleCompra.belongsTo(Repuesto, { foreignKey: 'id_repuesto', as: 'repuesto' });
 
 RepuestoUsado.belongsTo(Informe, { foreignKey: 'id_informe', as: 'informe' });
@@ -62,7 +61,7 @@ Parking.belongsTo(Auto, { foreignKey: 'id_auto', as: 'auto' });
 
 Permiso.belongsToMany(Rol, { through: 'rol_permiso', foreignKey: 'id_permiso', otherKey: 'id_rol', as: 'roles' });
 
-Proveedor.hasMany(CompraRepuestos, { foreignKey: 'id_proveedor', as: 'compras' });
+Proveedor.hasMany(CompraRepuesto, { foreignKey: 'id_proveedor', as: 'compras' });
 
 Repuesto.hasMany(RepuestoUsado, { foreignKey: 'id_repuesto', as: 'repuestosUsados' });
 Repuesto.hasMany(DetalleCompra, { foreignKey: 'id_repuesto', as: 'detallesCompra' });

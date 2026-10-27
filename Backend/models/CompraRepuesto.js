@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
 
-const CompraRepuestos = sequelize.define('CompraRepuestos', {
+const CompraRepuesto = sequelize.define('CompraRepuesto', {
     id_compra: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -38,4 +38,4 @@ const CompraRepuestos = sequelize.define('CompraRepuestos', {
     timestamps: false
 });
 
-module.exports = CompraRepuestos
+module.exports = CompraRepuesto

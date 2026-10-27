@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
 
+
 const Turno = sequelize.define('Turno', {
     id_turno: { 
         type: DataTypes.INTEGER, 
@@ -21,7 +22,7 @@ const Turno = sequelize.define('Turno', {
         type: DataTypes.INTEGER, 
         allowNull: false,
         references: {
-            model: Cliente,
+            model: 'clientes',
             key: 'id_cliente'
         }
     },
@@ -29,7 +30,7 @@ const Turno = sequelize.define('Turno', {
         type: DataTypes.INTEGER, 
         allowNull: false,
         references: {
-            model: Auto,
+            model: 'autos',
             key: 'id_auto'
         }
     }

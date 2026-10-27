@@ -6,8 +6,8 @@ const { verificarPermiso } = require('../middlewares/RBACMiddleware');
 
 router.use(verificarToken);
 
-router.get('/', verificarPermiso('FACTURACION_COBRANZAS_CRUD'), obtenerFacturas);
-router.get('/:id', verificarPermiso('FACTURACION_COBRANZAS_CRUD'), obtenerFacturaPorId);
+// router.get('/', verificarPermiso('FACTURACION_COBRANZAS_CRUD'), obtenerFacturas);
+// router.get('/:id', verificarPermiso('FACTURACION_COBRANZAS_CRUD'), obtenerFacturaPorId);
 
 router.post('/', verificarPermiso('FACTURACION_COBRANZAS_CRUD'), generarFactura);
 
