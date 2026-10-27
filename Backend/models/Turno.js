@@ -1,7 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
-const Cliente = require('./Cliente');
-const Auto = require('./Auto');
 
 const Turno = sequelize.define('Turno', {
     id_turno: { 
@@ -40,7 +38,5 @@ const Turno = sequelize.define('Turno', {
     timestamps: false 
 });
 
-Turno.belongsTo(Cliente, { foreignKey: 'id_cliente', as: 'cliente' });
-Turno.belongsTo(Auto, { foreignKey: 'id_auto', as: 'auto' });
 
 module.exports = Turno;

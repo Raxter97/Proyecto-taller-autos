@@ -1,9 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
-const Cliente = require('./Cliente');
-const Informe = require('./Informe');
-const Turno = require('./Turno');
-const Parking = require('./Parking');
 
 const Auto = sequelize.define('Auto', {
     id_auto: {
@@ -47,9 +43,5 @@ const Auto = sequelize.define('Auto', {
     timestamps: false
 });
 
-Auto.belongsTo(Cliente, { foreignKey: 'id_cliente', as: 'cliente' });
-Auto.hasMany(Informe, { foreignKey: 'id_auto', as: 'informes' });
-Auto.hasMany(Turno, { foreignKey: 'id_auto', as: 'turnos' });
-Auto.hasOne(Parking, { foreignKey: 'id_auto', as: 'parking' });
 
 module.exports = Auto;

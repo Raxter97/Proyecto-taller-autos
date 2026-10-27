@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
-const Auto = require('./Auto');
 
 const Parking = sequelize.define('Parking', {
     id_parking: {
@@ -31,6 +30,5 @@ const Parking = sequelize.define('Parking', {
     tableName: 'parking',
     timestamps: false
 });
-Parking.belongsTo(Auto, { foreignKey: 'id_auto', as: 'auto' });
 
 module.exports = Parking;

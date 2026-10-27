@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
-const Informe = require('./Informe');
+
 
 const Factura = sequelize.define('Factura', {
     id_factura: {
@@ -37,6 +37,5 @@ const Factura = sequelize.define('Factura', {
     tableName: 'facturas',
     timestamps: false
 });
-Factura.belongsTo(Informe, { foreignKey: 'id_informe', as: 'informe' });
 
 module.exports = Factura;

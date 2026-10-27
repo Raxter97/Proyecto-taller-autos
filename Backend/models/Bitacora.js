@@ -1,6 +1,5 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../config/Database');
-const User = require('./User.models');
 
 const Bitacora = sequelize.define('Bitacora',{
     id_bitacora:{
@@ -39,6 +38,5 @@ const Bitacora = sequelize.define('Bitacora',{
     tableName: "bitacora",
     timestamps: false
 });
-Bitacora.belongsTo(User, { foreignKey: 'id_usuario', as: 'usuario' });
 
 module.exports = Bitacora;

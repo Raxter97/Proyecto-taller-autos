@@ -1,7 +1,5 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../config/Database');
-const Auto = require('./Auto');
-const Turno = require('./Turno');
 
 const Cliente = sequelize.define('Cliente',{
     nombre: {
@@ -46,7 +44,5 @@ const Cliente = sequelize.define('Cliente',{
     timestamps: false
 });
 
-Cliente.hasMany(Auto, { foreignKey: 'id_cliente', as: 'autos' });
-Cliente.hasMany(Turno, { foreignKey: 'id_cliente', as: 'turnos' });
 
 module.exports = Cliente;

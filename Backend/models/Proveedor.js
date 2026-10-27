@@ -1,6 +1,5 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../config/Database');
-const CompraRepuestos = require('./CompraRepuesto');
 
 const Proveedor = sequelize.define('Proveedor',{
     id_proveedor:{
@@ -43,6 +42,5 @@ const Proveedor = sequelize.define('Proveedor',{
     tableName: "proveedor",
     timestamps: false
 });
-Proveedor.hasMany(CompraRepuestos, { foreignKey: 'id_proveedor', as: 'compras' });
 
 module.exports = Proveedor;

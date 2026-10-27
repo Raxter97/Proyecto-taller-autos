@@ -1,11 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    crearInforme, 
-    imputarRepuesto, 
-    imputarServicio, 
-    finalizarInforme 
-} = require('../controllers/InformeController');
+const { crearInforme, imputarRepuesto, imputarServicio, finalizarInforme } = require('../controllers/InformeController');
 const { verificarToken } = require('../middlewares/AuthMiddleware');
 const { verificarPermiso } = require('../middlewares/RBACMiddleware');
 

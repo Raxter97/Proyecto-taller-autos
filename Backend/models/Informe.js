@@ -1,9 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
-const Empleado = require('./Empleado');
-const Auto = require('./Auto');
-const Factura = require('./Factura');
-const {RepuestoUsado,ServicioRealizado}  = require('./DetalleInforme');
 
 const Informe = sequelize.define('Informe', {
     id_informe: {
@@ -43,11 +39,5 @@ const Informe = sequelize.define('Informe', {
     tableName: 'informes',
     timestamps: false
 });
-
-Informe.belongsTo(Auto, { foreignKey: 'id_auto', as: 'auto' });
-Informe.belongsTo(Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
-Informe.hasOne(Factura, { foreignKey: 'id_informe', as: 'factura' });
-Informe.hasMany(RepuestoUsado, { foreignKey: 'id_informe', as: 'repuestosUsados' });
-Informe.hasMany(ServicioRealizado, { foreignKey: 'id_informe', as: 'serviciosRealizados' });
 
 module.exports = Informe;

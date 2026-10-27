@@ -1,7 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
-const Proveedor = require('./Proveedor');
-const DetalleCompra = require('./DetalleCompra');
 
 const CompraRepuestos = sequelize.define('CompraRepuestos', {
     id_compra: {
@@ -39,7 +37,5 @@ const CompraRepuestos = sequelize.define('CompraRepuestos', {
     tableName: 'compra_repuestos',
     timestamps: false
 });
-CompraRepuestos.belongsTo(Proveedor, { foreignKey: 'id_proveedor', as: 'proveedor' });
-CompraRepuestos.hasMany(DetalleCompra, { foreignKey: 'id_compra', as: 'detalles' });
 
 module.exports = CompraRepuestos
