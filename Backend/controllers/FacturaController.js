@@ -10,7 +10,6 @@ const { actualizarDVV } = require('../utils/LogicaDvv');
 const { registrarBitacora } = require('../services/BitacoraService');
 
 
-// CU-FAC-01: Generar Factura de Servicio consolidando el informe finalizado
 const generarFactura = async (req, res) => {
     const trans = await sequelize.transaction();
     try {

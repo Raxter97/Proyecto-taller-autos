@@ -9,14 +9,14 @@ import Inventario from './components/inventario/Inventario';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentView, setCurrentView] = useState('login'); // 'login', 'register', 'turnos', 'clientes', 'taller', 'perfil'
+  const [currentView, setCurrentView] = useState('login'); 
 
-  // Verificar si hay un token válido al cargar la aplicación
+ 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
-      setCurrentView('turnos'); // Vista por defecto para usuarios autenticados
+      setCurrentView('perfil'); 
     }
   }, []);
 

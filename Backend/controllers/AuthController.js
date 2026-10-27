@@ -158,17 +158,19 @@ const registro = async(req, res) => {
         }, { transaction: trans });
         
         await actualizarDVV(User, 'users', 'id_user', { transaction: trans });
-
-        await registrarBitacora({
-            accion: 'REGISTRO_EXITOSO',
-            descripcion: JSON.stringify({ Usuario: newUser.toJSON() }),
-            nivel_impacto: 'Baja',
-            id_usuario: newUser.id_user 
-        }, { transaction: trans });
+        try {
+            await registrarBitacora({
+                accion: 'REGISTRO_EXITOSO',
+                descripcion: JSON.stringify({ Usuario: { id_user: newUser.id_user, email: newUser.email }}),
+                nivel_impacto: 'Baja',
+                id_usuario: newUser.id_user
+            }, { transaction: trans });
+        } catch (bitacoraError) {
+            console.error("Aviso: Falla en bitácora durante registro:", bitacoraError.message);
+        }
 
         await trans.commit();
-        res.status(201).json({
-            mensaje: 'Usuario registrado exitosamente',
+        res.status(201).json({mensaje: 'Usuario registrado exitosamente',
             user: {
                 id_user: newUser.id_user,
                 email: newUser.email,
@@ -176,6 +178,7 @@ const registro = async(req, res) => {
             }
         });
     } catch (error) {
+        console.error("--- ERROR CRÍTICO EN REGISTRO ---", error); // Impresión directa obligatoria
         await trans.rollback();
         if (error.name === 'SequelizeUniqueConstraintError') {
             return res.status(400).json({ 
@@ -183,9 +186,10 @@ const registro = async(req, res) => {
                 campo: error.errors[0]?.path 
             });
         }
-        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+        return res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
 };
+
 
 const obtenerPerfil = async(req, res) => {
     try {

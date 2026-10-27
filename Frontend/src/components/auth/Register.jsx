@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { apiCall } from '../../api';
+import { apiCall } from '../../Api';
 
 const dominiosComunes = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
 
@@ -7,13 +7,17 @@ export default function Register({ onSwitchToLogin }) {
   const [emailUsuario, setEmailUsuario] = useState('');
   const [emailDominio, setEmailDominio] = useState('gmail.com');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false); // <--- Control de doble clic
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return; 
+
     setError('');
     setSuccess('');
+    setIsSubmitting(true);
 
     const emailCompleto = `${emailUsuario}@${emailDominio}`;
 
@@ -31,6 +35,7 @@ export default function Register({ onSwitchToLogin }) {
       }, 1500);
     } catch (err) {
       setError(err.message);
+      setIsSubmitting(false); 
     }
   };
 
@@ -72,7 +77,9 @@ export default function Register({ onSwitchToLogin }) {
             required 
           />
         </div>
-        <button type="submit" style={{ marginTop: '10px' }}>Registrarse</button>
+        <button type="submit" disabled={isSubmitting} style={{ marginTop: '10px' }}>
+          {isSubmitting ? 'Registrando...' : 'Registrarse'}
+        </button>
       </form>
       <p style={{ marginTop: '15px' }}>
         ¿Ya tienes una cuenta?{' '}
