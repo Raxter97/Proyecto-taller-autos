@@ -1,5 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
+const Cliente = require('./Cliente');
+const Auto = require('./Auto');
 
 const Turno = sequelize.define('Turno', {
     id_turno: { 

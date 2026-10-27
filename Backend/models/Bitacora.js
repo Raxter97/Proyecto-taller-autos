@@ -1,5 +1,6 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../config/Database');
+const User = require('./User.models');
 
 const Bitacora = sequelize.define('Bitacora',{
     id_bitacora:{

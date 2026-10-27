@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
-
+const Auto = require('./Auto');
 
 const Parking = sequelize.define('Parking', {
     id_parking: {

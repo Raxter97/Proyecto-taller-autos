@@ -1,5 +1,9 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
+const Empleado = require('./Empleado');
+const Auto = require('./Auto');
+const Factura = require('./Factura');
+const {RepuestoUsado,ServicioRealizado}  = require('./DetalleInforme');
 
 const Informe = sequelize.define('Informe', {
     id_informe: {

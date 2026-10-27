@@ -1,5 +1,9 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
+const Cliente = require('./Cliente');
+const Informe = require('./Informe');
+const Turno = require('./Turno');
+const Parking = require('./Parking');
 
 const Auto = sequelize.define('Auto', {
     id_auto: {

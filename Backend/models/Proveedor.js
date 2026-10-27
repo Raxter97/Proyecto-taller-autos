@@ -1,5 +1,6 @@
 const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../config/Database');
+const CompraRepuestos = require('./CompraRepuesto');
 
 const Proveedor = sequelize.define('Proveedor',{
     id_proveedor:{

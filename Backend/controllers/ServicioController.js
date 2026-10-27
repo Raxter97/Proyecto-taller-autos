@@ -2,12 +2,31 @@ const Servicio = require('../models/Servicio');
 const { calcularDVH } = require('../utils/CalculosDv');
 const { actualizarDVV } = require('../utils/LogicaDvv');
 const { registrarBitacora } = require('../services/BitacoraService');
+const sequelize = require('../config/Database');
+
 const obtenerServicios = async (req, res) => {
     try {
-        const servicios = await Servicio.findAll();
-        res.status(200).json({ servicios });
+        let { page = 1, limit = 50 } = req.query;
+        page = Math.max(1, parseInt(page, 10) || 1);
+        limit = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
+        
+        const offset = (page - 1) * limit;
+
+        const { count, rows: servicios } = await Servicio.findAndCountAll({
+            limit,
+            offset,
+            order: [['id_servicio', 'ASC']]
+        });
+
+        res.status(200).json({
+            totalRegistros: count,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page,
+            pageSize: servicios.length,
+            servicios
+        });
     } catch (error) {
-        res.status(500).json({ mensaje: 'Error al obtener servicios', error: error.message });
+        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
 };
 

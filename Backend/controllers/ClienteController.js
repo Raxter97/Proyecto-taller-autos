@@ -6,6 +6,36 @@ const Factura = require('../models/Factura');
 const { calcularDVH } = require('../utils/CalculosDv');
 const { actualizarDVV } = require('../utils/LogicaDvv');
 const { registrarBitacora } = require('../services/BitacoraService');
+const sequelize = require('../config/Database');
+
+const obtenerClientes = async (req, res) => {
+    try {
+        let { page = 1, limit = 50 } = req.query;
+        page = parseInt(page, 10);
+        limit = parseInt(limit, 10);
+
+        page = (isNaN(page) || page < 1) ? 1 : page;
+        limit = (isNaN(limit) || limit < 1) ? 50 : Math.min(limit, 50);
+
+        const offset = (page - 1) * limit;
+
+        const { count, rows: clientes } = await Cliente.findAndCountAll({
+            limit,
+            offset,
+            order: [['id_cliente', 'ASC']]
+        });
+
+        res.status(200).json({
+            totalRegistros: count,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page,
+            pageSize: clientes.length,
+            clientes
+        });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener clientes', error: error.message });
+    }
+};
 
 const crearCliente = async (req, res) => {
     const trans = await sequelize.transaction();
@@ -214,4 +244,4 @@ const desactivarCliente = async (req, res) => {
     }
 };
 
-module.exports = { crearCliente, modificarCliente, desactivarCliente };
+module.exports = { crearCliente, modificarCliente, desactivarCliente, obtenerClientes };

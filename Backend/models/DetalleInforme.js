@@ -1,5 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
+const Informe = require('./Informe');
+const  Servicio = require('./Servicio');
+const Repuesto = require('./Repuesto');
 
 const RepuestoUsado = sequelize.define('RepuestoUsado', {
     id_repuesto_usado: {

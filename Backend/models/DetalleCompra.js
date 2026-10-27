@@ -1,8 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
-const CompraRepuestos = require('./CompraRepuestos');
+const CompraRepuestos = require('./CompraRepuesto');
 const Repuesto = require('./Repuesto');
-
 const DetalleCompra = sequelize.define('DetalleCompra', {
     id_detalle_compra: {
         type: DataTypes.INTEGER,
