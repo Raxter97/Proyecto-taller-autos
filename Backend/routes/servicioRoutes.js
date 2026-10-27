@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { 
     obtenerServicios, 
-    obtenerServicioPorId,
     crearServicio, 
     modificarServicio,
     desactivarServicio
@@ -14,7 +13,7 @@ router.use(verificarToken);
 
 // Rutas de Lectura de Servicios
 router.get('/', verificarPermiso('TALLER_REPARACIONES_CRUD'), obtenerServicios);
-router.get('/:id', verificarPermiso('TALLER_REPARACIONES_CRUD'), obtenerServicioPorId);
+// router.get('/:id', verificarPermiso('TALLER_REPARACIONES_CRUD'), obtenerServicioPorId); talvez
 
 // Rutas de Gestión de Catálogo de Servicios
 router.post('/', verificarPermiso('TALLER_REPARACIONES_CRUD'), crearServicio);

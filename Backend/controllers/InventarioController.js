@@ -1,5 +1,7 @@
 const Repuesto = require('../models/Repuesto');
 const Proveedor = require('../models/Proveedor');
+const Informe = require('../models/Informe');
+const RepuestoUsado = require('../models/DetalleInforme');
 const { registrarBitacora } = require('../services/BitacoraService');
 const { CompraRepuestos, DetalleCompra } = require('../models/DetallesCompra');
 const { calcularDVH } = require('../utils/CalculosDv');
@@ -131,8 +133,23 @@ const bajaRepuesto = async (req, res) => {
             return res.status(404).json({ mensaje: 'Repuesto no encontrado.' });
         }
 
+        const repuestoEnUso = await RepuestoUsado.findOne({
+            include: [{
+                model: Informe,
+                as: 'informe',
+                where: { estado: false }
+            }],
+            where: { id_repuesto: id },
+            transaction: trans
+        });
+        if (repuestoEnUso) {
+            await trans.rollback();
+            return res.status(400).json({ 
+                mensaje: 'No se puede dar de baja el repuesto porque está comprometido en informes técnicos abiertos.' 
+            });
+        }
         const previo = repuesto.toJSON();
-        repuesto.estado = false; // Soft-delete
+        repuesto.estado = false;
         
         const datosDVH = {
             descripcion: repuesto.descripcion,
@@ -327,6 +344,16 @@ const bajaProveedor = async (req, res) => {
             return res.status(404).json({ mensaje: 'Proveedor no encontrado.' });
         }
 
+        const compraPendiente = await CompraRepuestos.findOne({
+            where: { id_proveedor: id, estado: 'Pendiente' },
+            transaction: trans
+        });
+        if (compraPendiente) {
+            await trans.rollback();
+            return res.status(400).json({ 
+                mensaje: 'No se puede dar de baja el proveedor: posee órdenes de compra pendientes de recepción o en proceso.' 
+            });
+        }
         const previo = proveedor.toJSON();
         proveedor.estado = false;
 
@@ -443,6 +470,11 @@ const confirmarRecepcionMercaderia = async (req, res) => {
             return res.status(404).json({ mensaje: 'Orden de compra no encontrada.' });
         }
 
+        if (compra.estado === 'Recibida' || compra.estado === 'Completada') {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'La orden de compra ya fue recibida o completada previamente.' });
+        }
+
         const detalles = await DetalleCompra.findAll({ 
             where: { id_compra }, 
             transaction: trans 
@@ -467,6 +499,16 @@ const confirmarRecepcionMercaderia = async (req, res) => {
             }
         }
         await actualizarDVV(Repuesto, 'repuestos', 'id_repuesto', { transaction: trans });
+
+        compra.estado = 'Recibida';
+        compra.dvh = calcularDVH({
+            fecha: compra.fecha,
+            id_proveedor: compra.id_proveedor,
+            total: compra.total,
+            estado: compra.estado
+        });
+        await compra.save({ transaction: trans });
+        await actualizarDVV(CompraRepuestos, 'compra_repuestos', 'id_compra', { transaction: trans });
 
         await registrarBitacora({
             accion: 'RECEPCION_MERCADERIA',

@@ -15,10 +15,16 @@ const CompraRepuestos = sequelize.define('CompraRepuestos', {
         type: DataTypes.FLOAT,
         allowNull: false
     },
+    estado: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+        defaultValue: 'Pendiente' // O el valor por defecto que maneje tu sistema
+    },
     id_proveedor: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: { model: 'proveedor', 
+        references: { 
+            model: 'proveedor', 
             key: 'id_proveedor' 
         }
     },

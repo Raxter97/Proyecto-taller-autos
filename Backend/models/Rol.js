@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
 
-//Luna
+
 
 const Rol = sequelize.define('Rol', {
     id_rol: { 
