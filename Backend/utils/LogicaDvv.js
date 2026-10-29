@@ -35,8 +35,8 @@ const actualizarDVV = async (Model, nombreTabla, pkField = 'id_user', options = 
 /**
  * @param {Object} Model 
  * @param {string} nombreTabla 
- * @param {string} pkField Campo de la clave primaria
- * @param {Object} req Objeto request (opcional para capturar el id del usuario si estuviera logueado)
+ * @param {string} pkField 
+ * @param {Object} req 
  */
 const verificarDVVTabla = async (Model, nombreTabla, pkField = 'id_user', req = null, options = {}) => {
     try {
@@ -58,7 +58,6 @@ const verificarDVVTabla = async (Model, nombreTabla, pkField = 'id_user', req = 
         const dvvActual = calcularDVV(Dvhs);
 
         if (dvvActual !== auditoriaRegistro.dvv) {
-            // Registrar el evento crítico en  bitácora 
             try {
                 await registrarBitacora({
                     accion: 'DISCREPANCIA_DVV_CRITICA',

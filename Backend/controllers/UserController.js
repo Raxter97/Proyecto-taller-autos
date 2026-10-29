@@ -176,7 +176,6 @@ const modificarCuentaAdmin = async (req, res) => {
     }
 };
 
-// CU-SAU-02.3: Desactivar cuenta de usuario (Baja lógica)
 const desactivarCuentaAdmin = async (req, res) => {
     try {
         const { id } = req.params;
