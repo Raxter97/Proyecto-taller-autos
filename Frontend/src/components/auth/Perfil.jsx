@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { apiCall } from '../../Api';
+import { authApi } from '../../api/authApi'; 
 
 const dominiosComunes = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
 
@@ -10,13 +10,12 @@ export default function Perfil({ onLogout }) {
   const [emailDominio, setEmailDominio] = useState('gmail.com');
   const [successMsg, setSuccessMsg] = useState('');
   
-  // Nuevos estados para editar contraseña
   const [passwordActual, setPasswordActual] = useState('');
   const [passwordNueva, setPasswordNueva] = useState('');
   const [passMsg, setPassMsg] = useState('');
 
   useEffect(() => {
-    apiCall('/auth/me')
+    authApi.obtenerPerfil()
       .then((data) => {
         setUser(data.user);
 
@@ -47,10 +46,7 @@ export default function Perfil({ onLogout }) {
     const nuevoEmail = `${emailUsuario}@${emailDominio}`;
 
     try {
-      const data = await apiCall('/auth/me/email', {
-        method: 'PUT',
-        body: JSON.stringify({ nuevoEmail }),
-      });
+      const data = await authApi.actualizarEmail({ nuevoEmail });
       setUser((prev) => ({ ...prev, email: data.email }));
       setSuccessMsg('Correo actualizado correctamente.');
     } catch (err) {
@@ -63,10 +59,7 @@ export default function Perfil({ onLogout }) {
     setError('');
     setPassMsg('');
     try {
-      await apiCall('/auth/me/password', {
-        method: 'PUT',
-        body: JSON.stringify({ passwordActual, passwordNueva }),
-      });
+      await authApi.actualizarPassword({ passwordActual, passwordNueva });
       setPassMsg('Contraseña actualizada correctamente.');
       setPasswordActual('');
       setPasswordNueva('');
@@ -78,7 +71,7 @@ export default function Perfil({ onLogout }) {
   const handleDeleteAccount = async () => {
     if (window.confirm('¿Estás seguro de que deseas eliminar/desactivar tu cuenta?')) {
       try {
-        await apiCall('/auth/me/cuenta', { method: 'DELETE' });
+        await authApi.eliminarCuenta();
         onLogout();
       } catch (err) {
         setError(err.message);
@@ -99,7 +92,6 @@ export default function Perfil({ onLogout }) {
         <p><strong>ID de Empleado Asociado:</strong> {user.id_empleado}</p>
         <p><strong>Estado de Cuenta:</strong> {user.estado ? 'Activo' : 'Inactivo'}</p>
         
-        {/* Formulario Editar Email */}
         <form onSubmit={handleUpdateEmail} style={{ marginTop: '15px' }}>
           <div>
             <label><strong>Actualizar Correo Electrónico:</strong></label>
@@ -127,7 +119,6 @@ export default function Perfil({ onLogout }) {
           <button type="submit" style={{ marginTop: '10px' }}>Guardar Cambios</button>
         </form>
 
-        {/* Formulario Editar Contraseña */}
         <form onSubmit={handleUpdatePassword} style={{ marginTop: '20px', borderTop: '1px solid #444', paddingTop: '15px' }}>
           <div>
             <label><strong>Actualizar Contraseña:</strong></label>
@@ -154,7 +145,6 @@ export default function Perfil({ onLogout }) {
           <button type="submit" style={{ marginTop: '10px' }}>Actualizar Contraseña</button>
         </form>
 
-        {/* Botón Eliminar Cuenta */}
         <div style={{ marginTop: '20px', borderTop: '1px solid #444', paddingTop: '15px' }}>
           <button 
             type="button" 

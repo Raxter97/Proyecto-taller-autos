@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { apiCall } from '../../Api';
+import { authApi } from '../../api/authApi';
 
 const dominiosComunes = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
 
@@ -20,10 +20,7 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }) {
     const emailCompleto = `${emailUsuario}@${emailDominio}`;
 
     try {
-      const data = await apiCall('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email: emailCompleto, password }),
-      });
+      const data = await authApi.login({ email: emailCompleto, password });
       localStorage.setItem('token', data.token);
       onLoginSuccess();
     } catch (err) {
@@ -39,10 +36,7 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }) {
     const emailCompleto = `${emailUsuario}@${emailDominio}`;
 
     try {
-      await apiCall('/auth/recuperar-password', {
-        method: 'POST',
-        body: JSON.stringify({ email: emailCompleto, nuevaPassword }),
-      });
+      await authApi.recuperarPassword({ email: emailCompleto, nuevaPassword });
       setSuccessMsg('Contraseña restablecida con éxito. Ya puedes iniciar sesión.');
       setIsRecovering(false);
       setNuevaPassword('');

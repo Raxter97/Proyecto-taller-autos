@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import { apiCall } from '../../Api';
+import { clientesApi } from '../../api/clientesApi';
+import { autosApi } from '../../api/autosApi';
 
 export default function ClientesAutos() {
   const [clientes, setClientes] = useState([]);
-  const [autos, setAutos] = useState([]);
   const [historial, setHistorial] = useState(null);
   const [patenteBusqueda, setPatenteBusqueda] = useState('');
   
-  // Estados de formularios
   const [dni, setDni] = useState('');
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
@@ -25,10 +24,7 @@ export default function ClientesAutos() {
 
   const cargarDatos = async () => {
     try {
-      // Como no creamos un GET general de clientes/autos explícito en las rutas base 
-      // (solo creamos endpoints puntuales), puedes ajustar si tienes un GET general.
-      // Aquí simulamos la llamada a los endpoints operativos:
-      const resClientes = await apiCall('/clientes').catch(() => ({ clientes: [] }));
+      const resClientes = await clientesApi.obtenerTodos().catch(() => ({ clientes: [] }));
       setClientes(resClientes.clientes || []);
     } catch (err) {
       setError(err.message);
@@ -44,10 +40,7 @@ export default function ClientesAutos() {
     setError('');
     setSuccess('');
     try {
-      await apiCall('/clientes', {
-        method: 'POST',
-        body: JSON.stringify({ dni, nombre, apellido, email, telefono, direccion })
-      });
+      await clientesApi.crear({ dni, nombre, apellido, email, telefono, direccion });
       setSuccess('Cliente registrado exitosamente.');
       setDni(''); setNombre(''); setApellido(''); setEmail(''); setTelefono(''); setDireccion('');
       cargarDatos();
@@ -61,14 +54,11 @@ export default function ClientesAutos() {
     setError('');
     setSuccess('');
     try {
-      await apiCall('/autos', {
-        method: 'POST',
-        body: JSON.stringify({ 
-          patente: autoPatente, 
-          marca: autoMarca, 
-          modelo: autoModelo, 
-          id_cliente: Number(autoIdCliente) 
-        })
+      await autosApi.crear({ 
+        patente: autoPatente, 
+        marca: autoMarca, 
+        modelo: autoModelo, 
+        id_cliente: Number(autoIdCliente) 
       });
       setSuccess('Vehículo registrado exitosamente.');
       setAutoPatente(''); setAutoMarca(''); setAutoModelo(''); setAutoIdCliente('');
@@ -82,21 +72,8 @@ export default function ClientesAutos() {
     setError('');
     setHistorial(null);
     try {
-      const data = await apiCall(`/autos/historial/${patenteBusqueda}`);
+      const data = await autosApi.consultarHistorial(patenteBusqueda);
       setHistorial(data);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleBajaCliente = async (id) => {
-    if (!window.confirm('¿Desea dar de baja lógica a este cliente? Se validarán dependencias.')) return;
-    setError('');
-    setSuccess('');
-    try {
-      await apiCall(`/clientes/${id}`, { method: 'DELETE' });
-      setSuccess('Cliente dado de baja correctamente.');
-      cargarDatos();
     } catch (err) {
       setError(err.message);
     }
@@ -109,7 +86,6 @@ export default function ClientesAutos() {
       {success && <p style={{ color: 'green' }}>{success}</p>}
 
       <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-        {/* Formulario Registrar Cliente */}
         <form onSubmit={handleCrearCliente} style={{ border: '1px solid #444', padding: '15px', flex: '1' }}>
           <h3>Registrar Cliente</h3>
           <div><input type="text" placeholder="DNI" value={dni} onChange={e => setDni(e.target.value)} required /></div>
@@ -121,7 +97,6 @@ export default function ClientesAutos() {
           <button type="submit" style={{ marginTop: '10px' }}>Guardar Cliente</button>
         </form>
 
-        {/* Formulario Registrar Auto */}
         <form onSubmit={handleCrearAuto} style={{ border: '1px solid #444', padding: '15px', flex: '1' }}>
           <h3>Registrar Vehículo</h3>
           <div><input type="text" placeholder="Patente (Ej: AB123CD)" value={autoPatente} onChange={e => setAutoPatente(e.target.value)} required /></div>
@@ -132,17 +107,10 @@ export default function ClientesAutos() {
         </form>
       </div>
 
-      {/* Consulta de Historial Vehicular */}
       <div style={{ marginTop: '30px', border: '1px solid #444', padding: '15px' }}>
         <h3>Consultar Historial Técnico por Patente</h3>
         <form onSubmit={handleBuscarHistorial} style={{ display: 'flex', gap: '10px' }}>
-          <input 
-            type="text" 
-            placeholder="Ingrese Patente" 
-            value={patenteBusqueda} 
-            onChange={e => setPatenteBusqueda(e.target.value.toUpperCase())} 
-            required 
-          />
+          <input type="text" placeholder="Ingrese Patente" value={patenteBusqueda} onChange={e => setPatenteBusqueda(e.target.value.toUpperCase())} required />
           <button type="submit">Buscar Historial</button>
         </form>
 
@@ -157,7 +125,6 @@ export default function ClientesAutos() {
                 <div key={inf.id_informe} style={{ borderBottom: '1px solid #555', margin: '10px 0', paddingBottom: '5px' }}>
                   <p><strong>Fecha:</strong> {inf.fecha} | <strong>Estado:</strong> {inf.estado ? 'Finalizado' : 'En Proceso'}</p>
                   <p><strong>Descripción:</strong> {inf.descripcion}</p>
-                  <p><strong>Mecánico Legajo:</strong> {inf.Empleado?.legajo} ({inf.Empleado?.nombre} {inf.Empleado?.apellido})</p>
                 </div>
               ))
             )}

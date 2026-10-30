@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { apiCall } from '../../Api';
+import { inventarioApi } from '../../api/inventarioApi'; // <--- Importamos el servicio basado en Axios
 
 export default function Inventario() {
   const [repuestos, setRepuestos] = useState([]);
@@ -9,10 +9,11 @@ export default function Inventario() {
   const [pageRep, setPageRep] = useState(1);
   const [totalPagesRep, setTotalPagesRep] = useState(1);
 
-  // Formularios
+  // Formularios Repuesto
   const [descripcion, setDescripcion] = useState('');
   const [stock, setStock] = useState('');
 
+  // Formularios Proveedor
   const [razonSocial, setRazonSocial] = useState('');
   const [direccion, setDireccion] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -23,12 +24,13 @@ export default function Inventario() {
 
   const cargarInventario = async (p = 1) => {
     try {
-      const dataRep = await apiCall(`/inventario/repuestos?page=${p}&limit=10`);
+      // Usamos el servicio modular con Axios pasando la página y límite
+      const dataRep = await inventarioApi.obtenerRepuestos(p, 10);
       setRepuestos(dataRep.repuestos || []);
       setTotalPagesRep(dataRep.totalPages || 1);
       setPageRep(dataRep.currentPage || 1);
 
-      const dataProv = await apiCall('/inventario/proveedores');
+      const dataProv = await inventarioApi.obtenerProveedores();
       setProveedor(dataProv.proveedores || []);
     } catch (err) {
       setError(err.message);
@@ -43,10 +45,7 @@ export default function Inventario() {
     e.preventDefault();
     setError(''); setSuccess('');
     try {
-      await apiCall('/inventario/repuestos', {
-        method: 'POST',
-        body: JSON.stringify({ descripcion, stock: Number(stock) })
-      });
+      await inventarioApi.crearRepuesto({ descripcion, stock: Number(stock) });
       setSuccess('Repuesto creado con éxito.');
       setDescripcion(''); setStock('');
       cargarInventario(pageRep);
@@ -59,9 +58,11 @@ export default function Inventario() {
     e.preventDefault();
     setError(''); setSuccess('');
     try {
-      await apiCall('/inventario/proveedores', {
-        method: 'POST',
-        body: JSON.stringify({ razon_social: razonSocial, direccion, telefono, email })
+      await inventarioApi.crearProveedor({ 
+        razon_social: razonSocial, 
+        direccion, 
+        telefono, 
+        email 
       });
       setSuccess('Proveedor registrado con éxito.');
       setRazonSocial(''); setDireccion(''); setTelefono(''); setEmail('');
@@ -97,7 +98,7 @@ export default function Inventario() {
         </form>
       </div>
 
-      {/* Listado de Repuestos con Paginación (RNF-REN-02) */}
+      {/* Listado de Repuestos con Paginación */}
       <h3>Listado de Repuestos (Stock)</h3>
       <table border="1" cellPadding="8" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
         <thead>
@@ -140,6 +141,14 @@ export default function Inventario() {
           Siguiente
         </button>
       </div>
+
+      {/* Opcional: Podrías listar los proveedores abajo si lo deseas */}
+      <h3 style={{ marginTop: '30px' }}>Listado de Proveedores Registrados</h3>
+      <ul>
+        {proveedores.map(p => (
+          <li key={p.id_proveedor}>{p.razon_social} - Tel: {p.telefono} ({p.email})</li>
+        ))}
+      </ul>
     </div>
   );
 }

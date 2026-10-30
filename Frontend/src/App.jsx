@@ -6,12 +6,15 @@ import Turnos from './components/turnos/Turnos';
 import ClientesAutos from './components/clientes/ClientesAutos';
 import TallerInformes from './components/taller/TallerInformes';
 import Inventario from './components/inventario/Inventario';
+import Factura from './components/factura/Factura';
+import Parking from './components/parking/Parking';
+import Bitacora from './components/admin/Bitacora';
+import UserAdmin from './components/admin/UserAdmin';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentView, setCurrentView] = useState('login'); 
 
- 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -54,46 +57,81 @@ export default function App() {
       {/* Barra de Navegación de Módulos */}
       <nav style={{ 
         display: 'flex', 
-        gap: '15px', 
+        gap: '10px', 
         padding: '15px 20px', 
         backgroundColor: '#1a1a1a', 
         borderBottom: '1px solid #333',
         alignItems: 'center',
         flexWrap: 'wrap'
       }}>
-        <strong style={{ color: '#646cff', marginRight: '15px' }}>Taller Automotriz</strong>
+        <strong style={{ color: '#646cff', marginRight: '10px' }}>Taller Automotriz</strong>
         
         <button 
           onClick={() => setCurrentView('turnos')}
-          style={{ backgroundColor: currentView === 'turnos' ? '#646cff' : 'transparent' }}
+          style={{ backgroundColor: currentView === 'turnos' ? '#646cff' : 'transparent', border: '1px solid #555', padding: '6px 10px', cursor: 'pointer', color: 'white' }}
         >
           Agenda / Turnos
         </button>
 
         <button 
           onClick={() => setCurrentView('clientes')}
-          style={{ backgroundColor: currentView === 'clientes' ? '#646cff' : 'transparent' }}
+          style={{ backgroundColor: currentView === 'clientes' ? '#646cff' : 'transparent', border: '1px solid #555', padding: '6px 10px', cursor: 'pointer', color: 'white' }}
         >
-          Clientes y Vehículos
+          Clientes y Autos
         </button>
 
         <button 
           onClick={() => setCurrentView('taller')}
-          style={{ backgroundColor: currentView === 'taller' ? '#646cff' : 'transparent' }}
+          style={{ backgroundColor: currentView === 'taller' ? '#646cff' : 'transparent', border: '1px solid #555', padding: '6px 10px', cursor: 'pointer', color: 'white' }}
         >
           Taller e Informes
         </button>
 
         <button 
+          onClick={() => setCurrentView('inventario')}
+          style={{ backgroundColor: currentView === 'inventario' ? '#646cff' : 'transparent', border: '1px solid #555', padding: '6px 10px', cursor: 'pointer', color: 'white' }}
+        >
+          Inventario
+        </button>
+
+        <button 
+          onClick={() => setCurrentView('parking')}
+          style={{ backgroundColor: currentView === 'parking' ? '#646cff' : 'transparent', border: '1px solid #555', padding: '6px 10px', cursor: 'pointer', color: 'white' }}
+        >
+          Parking
+        </button>
+
+        <button 
+          onClick={() => setCurrentView('factura')}
+          style={{ backgroundColor: currentView === 'factura' ? '#646cff' : 'transparent', border: '1px solid #555', padding: '6px 10px', cursor: 'pointer', color: 'white' }}
+        >
+          Facturación
+        </button>
+
+        <button 
+          onClick={() => setCurrentView('bitacora')}
+          style={{ backgroundColor: currentView === 'bitacora' ? '#646cff' : 'transparent', border: '1px solid #555', padding: '6px 10px', cursor: 'pointer', color: 'white' }}
+        >
+          Bitácora
+        </button>
+
+        <button 
+          onClick={() => setCurrentView('usuarios')}
+          style={{ backgroundColor: currentView === 'usuarios' ? '#646cff' : 'transparent', border: '1px solid #555', padding: '6px 10px', cursor: 'pointer', color: 'white' }}
+        >
+          Usuarios
+        </button>
+
+        <button 
           onClick={() => setCurrentView('perfil')}
-          style={{ backgroundColor: currentView === 'perfil' ? '#646cff' : 'transparent', marginLeft: 'auto' }}
+          style={{ backgroundColor: currentView === 'perfil' ? '#646cff' : 'transparent', border: '1px solid #555', padding: '6px 10px', cursor: 'pointer', color: 'white', marginLeft: 'auto' }}
         >
           Mi Perfil
         </button>
 
         <button 
           onClick={handleLogout} 
-          style={{ backgroundColor: '#d9534f', color: 'white' }}
+          style={{ backgroundColor: '#d9534f', color: 'white', border: 'none', padding: '6px 10px', cursor: 'pointer' }}
         >
           Cerrar Sesión
         </button>
@@ -104,6 +142,11 @@ export default function App() {
         {currentView === 'turnos' && <Turnos />}
         {currentView === 'clientes' && <ClientesAutos />}
         {currentView === 'taller' && <TallerInformes />}
+        {currentView === 'inventario' && <Inventario />}
+        {currentView === 'parking' && <Parking />}
+        {currentView === 'factura' && <Factura />}
+        {currentView === 'bitacora' && <Bitacora />}
+        {currentView === 'usuarios' && <UserAdmin />}
         {currentView === 'perfil' && <Perfil onLogout={handleLogout} />}
       </main>
     </div>

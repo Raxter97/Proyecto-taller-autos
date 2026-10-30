@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { apiCall } from '../../Api';
+import { authApi } from '../../api/authApi'; 
 
 const dominiosComunes = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
 
@@ -7,7 +7,7 @@ export default function Register({ onSwitchToLogin }) {
   const [emailUsuario, setEmailUsuario] = useState('');
   const [emailDominio, setEmailDominio] = useState('gmail.com');
   const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false); // <--- Control de doble clic
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -22,12 +22,9 @@ export default function Register({ onSwitchToLogin }) {
     const emailCompleto = `${emailUsuario}@${emailDominio}`;
 
     try {
-      await apiCall('/auth/registro', {
-        method: 'POST',
-        body: JSON.stringify({ 
-          email: emailCompleto, 
-          password, 
-        }),
+      await authApi.registro({ 
+        email: emailCompleto, 
+        password, 
       });
       setSuccess('Usuario registrado con éxito. Redirigiendo al login...');
       setTimeout(() => {

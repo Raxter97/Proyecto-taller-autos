@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { apiCall } from '../../Api';
+import { informesApi } from '../../api/informesApi';
 
 export default function TallerInformes() {
   const [informes, setInformes] = useState([]);
@@ -11,7 +11,7 @@ export default function TallerInformes() {
 
   const cargarInformes = async () => {
     try {
-      const data = await apiCall('/informes').catch(() => ({ informes: [] }));
+      const data = await informesApi.obtenerTodos().catch(() => ({ informes: [] }));
       setInformes(data.informes || []);
     } catch (err) {
       setError(err.message);
@@ -27,13 +27,10 @@ export default function TallerInformes() {
     setError('');
     setSuccess('');
     try {
-      await apiCall('/informes', {
-        method: 'POST',
-        body: JSON.stringify({
-          id_auto: Number(idAuto),
-          id_empleado: Number(idEmpleado),
-          descripcion,
-        }),
+      await informesApi.crear({
+        id_auto: Number(idAuto),
+        id_empleado: Number(idEmpleado),
+        descripcion,
       });
       setSuccess('Informe técnico abierto con éxito y turno asociado marcado como "Atendido".');
       setIdAuto('');
@@ -51,44 +48,23 @@ export default function TallerInformes() {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {success && <p style={{ color: 'green' }}>{success}</p>}
 
-      {/* Formulario para Apertura de Informe */}
       <form onSubmit={handleCrearInforme} style={{ border: '1px solid #444', padding: '15px', marginBottom: '30px', borderRadius: '5px' }}>
         <h3>Abrir Nuevo Informe en Taller</h3>
         <div style={{ marginTop: '10px' }}>
           <label>ID del Vehículo (Auto):</label><br />
-          <input 
-            type="number" 
-            value={idAuto} 
-            onChange={(e) => setIdAuto(e.target.value)} 
-            placeholder="Ej: 1"
-            required 
-          />
+          <input type="number" value={idAuto} onChange={(e) => setIdAuto(e.target.value)} placeholder="Ej: 1" required />
         </div>
         <div style={{ marginTop: '10px' }}>
           <label>ID del Empleado (Mecánico asignado):</label><br />
-          <input 
-            type="number" 
-            value={idEmpleado} 
-            onChange={(e) => setIdEmpleado(e.target.value)} 
-            placeholder="Ej: 2"
-            required 
-          />
+          <input type="number" value={idEmpleado} onChange={(e) => setIdEmpleado(e.target.value)} placeholder="Ej: 2" required />
         </div>
         <div style={{ marginTop: '10px' }}>
           <label>Descripción del Diagnóstico / Reparación:</label><br />
-          <textarea 
-            value={descripcion} 
-            onChange={(e) => setDescripcion(e.target.value)} 
-            placeholder="Detalle de trabajos a realizar..."
-            rows="3"
-            style={{ width: '100%' }}
-            required 
-          />
+          <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Detalle de trabajos a realizar..." rows="3" style={{ width: '100%' }} required />
         </div>
         <button type="submit" style={{ marginTop: '15px' }}>Registrar Apertura de Informe</button>
       </form>
 
-      {/* Listado de Informes Técnicos */}
       <h3>Informes en el Taller</h3>
       <table border="1" cellPadding="10" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
         <thead>
@@ -103,9 +79,7 @@ export default function TallerInformes() {
         </thead>
         <tbody>
           {informes.length === 0 ? (
-            <tr>
-              <td colSpan="6" align="center">No hay informes registrados.</td>
-            </tr>
+            <tr><td colSpan="6" align="center">No hay informes registrados.</td></tr>
           ) : (
             informes.map((inf) => (
               <tr key={inf.id_informe || inf.id}>
