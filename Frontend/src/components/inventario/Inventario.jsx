@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { inventarioApi } from '../../api/inventarioApi'; // <--- Importamos el servicio basado en Axios
+import { inventarioApi } from '../../api/inventarioApi'; 
 
 export default function Inventario() {
   const [repuestos, setRepuestos] = useState([]);

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { turnosApi } from '../../api/turnosApi'; // <--- Usamos Axios modular
+import { turnosApi } from '../../api/turnosApi';
 
 export default function Turnos() {
   const [turnos, setTurnos] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [filtroMisTurnos, setFiltroMisTurnos] = useState(false);
 
   const [fechaHora, setFechaHora] = useState('');
   const [idCliente, setIdCliente] = useState('');
@@ -12,7 +13,10 @@ export default function Turnos() {
 
   const cargarTurnos = async () => {
     try {
-      const data = await turnosApi.obtenerTodos();
+      const data = filtroMisTurnos 
+        ? await turnosApi.obtenerMisTurnos() 
+        : await turnosApi.obtenerTodos();
+        
       setTurnos(data.turnos || []);
     } catch (err) {
       setError(err.message);
@@ -21,7 +25,7 @@ export default function Turnos() {
 
   useEffect(() => {
     cargarTurnos();
-  }, []);
+  }, [filtroMisTurnos]);
 
   const handleAgendar = async (e) => {
     e.preventDefault();
@@ -81,6 +85,21 @@ export default function Turnos() {
         </div>
         <button type="submit" style={{ marginTop: '15px' }}>Agendar Turno</button>
       </form>
+
+      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+        <button 
+          onClick={() => setFiltroMisTurnos(false)} 
+          style={{ padding: '8px 15px', backgroundColor: !filtroMisTurnos ? '#007bff' : '#ccc', color: 'white', border: 'none', cursor: 'pointer' }}
+        >
+          Ver Todos
+        </button>
+        <button 
+          onClick={() => setFiltroMisTurnos(true)} 
+          style={{ padding: '8px 15px', backgroundColor: filtroMisTurnos ? '#007bff' : '#ccc', color: 'white', border: 'none', cursor: 'pointer' }}
+        >
+          Ver Mis Turnos
+        </button>
+      </div>
 
       <h3>Turnos Registrados</h3>
       <table border="1" cellPadding="10" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>

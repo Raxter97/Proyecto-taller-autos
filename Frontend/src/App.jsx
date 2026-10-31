@@ -25,7 +25,7 @@ export default function App() {
 
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
-    setCurrentView('turnos');
+    setCurrentView('perfil');
   };
 
   const handleLogout = () => {

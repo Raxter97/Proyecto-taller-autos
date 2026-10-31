@@ -19,6 +19,8 @@ export default function ClientesAutos() {
   const [autoModelo, setAutoModelo] = useState('');
   const [autoIdCliente, setAutoIdCliente] = useState('');
 
+  const [misAutos, setMisAutos] = useState([]);
+
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -26,6 +28,13 @@ export default function ClientesAutos() {
     try {
       const resClientes = await clientesApi.obtenerTodos().catch(() => ({ clientes: [] }));
       setClientes(resClientes.clientes || []);
+
+      try {
+        const response = await autosApi.obtenerMisAutos();
+        setMisAutos(response.data?.autos || response.autos || []);
+      } catch (err) {
+        // Ignorar si el rol actual no es cliente o no requiere mis autos
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -62,6 +71,7 @@ export default function ClientesAutos() {
       });
       setSuccess('Vehículo registrado exitosamente.');
       setAutoPatente(''); setAutoMarca(''); setAutoModelo(''); setAutoIdCliente('');
+      cargarDatos();
     } catch (err) {
       setError(err.message);
     }
@@ -105,6 +115,21 @@ export default function ClientesAutos() {
           <div><input type="number" placeholder="ID del Cliente Propietario" value={autoIdCliente} onChange={e => setAutoIdCliente(e.target.value)} required /></div>
           <button type="submit" style={{ marginTop: '10px' }}>Vincular Vehículo</button>
         </form>
+      </div>
+
+      <div style={{ marginTop: '30px', border: '1px solid #444', padding: '15px' }}>
+        <h3>Mis Vehículos Registrados</h3>
+        <ul>
+          {misAutos.length === 0 ? (
+            <p>No hay vehículos registrados para este usuario.</p>
+          ) : (
+            misAutos.map((auto) => (
+              <li key={auto.id_auto}>
+                {auto.marca} {auto.modelo} - Patente: {auto.patente}
+              </li>
+            ))
+          )}
+        </ul>
       </div>
 
       <div style={{ marginTop: '30px', border: '1px solid #444', padding: '15px' }}>

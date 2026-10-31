@@ -20,29 +20,32 @@ const seedRolesYPermisos = async () => {
             where: { nombre_rol: 'Encargado de deposito' }, 
             defaults: { descripcion: 'Logística de insumos, control de stock, catálogo, órdenes de compra y recepción', estado: true, dvh: 'dummy' } 
         });
+        const [UsuarioRol] = await Rol.findOrCreate({ 
+            where: { nombre_rol: 'Usuario' }, 
+            defaults: { descripcion: 'Autogestión de perfil, turnos propios e historial de vehículos', estado: true, dvh: 'dummy' } 
+        });
 
-        // 2. Definir los Permisos basados estrictamente en los Módulos del PDF
         const permisosData = [
-            // Módulo 1
+            
             { nombre_permiso: 'SEGURIDAD_CRUD', modulo: 'Seguridad y Auditoría' },
-            // Módulo 2
+            
             { nombre_permiso: 'CLIENTES_VEHICULOS_CRUD', modulo: 'Clientes y Vehículos' },
             { nombre_permiso: 'CLIENTES_VEHICULOS_LECTURA', modulo: 'Clientes y Vehículos' },
-            // Módulo 3
+            
             { nombre_permiso: 'AGENDA_TURNOS_CRUD', modulo: 'Agenda y Turnos' },
             { nombre_permiso: 'AGENDA_TURNOS_LECTURA', modulo: 'Agenda y Turnos' },
-            // Módulo 4
+            
             { nombre_permiso: 'PARKING_CRUD', modulo: 'Recepción y Parking' },
             { nombre_permiso: 'PARKING_LECTURA', modulo: 'Recepción y Parking' },
-            // Módulo 5
+            
             { nombre_permiso: 'PERSONAL_EMPLEADOS_CRUD', modulo: 'Personal y Empleados' },
-            // Módulo 6
+            
             { nombre_permiso: 'TALLER_REPARACIONES_CRUD', modulo: 'Taller y Reparaciones' },
             { nombre_permiso: 'TALLER_REPARACIONES_LECTURA', modulo: 'Taller y Reparaciones' },
-            // Módulo 7
+            
             { nombre_permiso: 'INVENTARIO_COMPRAS_CRUD', modulo: 'Inventario y Compras' },
             { nombre_permiso: 'INVENTARIO_COMPRAS_LECTURA', modulo: 'Inventario y Compras' },
-            // Módulo 8
+            
             { nombre_permiso: 'FACTURACION_COBRANZAS_CRUD', modulo: 'Facturación y Cobranzas' }
         ];
 
@@ -77,6 +80,10 @@ const seedRolesYPermisos = async () => {
         );
         await encargado.setPermisos(permisosEncargado);
 
+        const permisosCliente = permisosCreados.filter(p => 
+            ['CLIENTES_VEHICULOS_LECTURA', 'AGENDA_TURNOS_LECTURA'].includes(p.nombre_permiso)
+        );
+        await UsuarioRol.setPermisos(permisosCliente);
         console.log('Seeder de Roles y Permisos sincronizado con la documentación oficial.');
     } catch (error) {
         console.error('Error al ejecutar el seeder:', error);

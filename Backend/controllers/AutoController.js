@@ -163,6 +163,23 @@ const consultarHistorial = async (req, res) => {
     }
 };
 
+const consultarHistorialUser = async (req, res) => {
+  try {
+    const cliente = await Cliente.findOne({ where: { email: req.user.email } });
+    if (!cliente) {
+      return res.status(404).json({ mensaje: 'Perfil de cliente no encontrado.' });
+    }
+
+    const autos = await Auto.findAll({
+      where: { id_cliente: cliente.id_cliente }
+    });
+
+    res.status(200).json({ autos });
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al consultar tus vehículos.', error: error.message });
+  }
+};
+
 const desactivarAuto = async (req, res) => {
     try {
         const { id } = req.params;
@@ -200,4 +217,4 @@ const desactivarAuto = async (req, res) => {
 
 
 
-module.exports = { crearAuto, modificarAuto, consultarHistorial,desactivarAuto  };
+module.exports = { crearAuto, modificarAuto, consultarHistorial,desactivarAuto,consultarHistorialUser  };

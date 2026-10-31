@@ -15,9 +15,9 @@ export default function Register({ onSwitchToLogin }) {
     e.preventDefault();
     if (isSubmitting) return; 
 
+    setIsSubmitting(true);
     setError('');
     setSuccess('');
-    setIsSubmitting(true);
 
     const emailCompleto = `${emailUsuario}@${emailDominio}`;
 

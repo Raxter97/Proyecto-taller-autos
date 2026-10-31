@@ -1,6 +1,7 @@
 const User = require("../models/User.models");
 const {comparePassword, hashPassword} = require('../utils/Encriptacion');
 const {calcularDVH} = require('../utils/CalculosDv');
+const Rol = require("../models/Rol");
 const {actualizarDVV, verificarDVVTabla} = require('../utils/LogicaDvv');
 const {limpiarDatosUsuario}= require('../utils/LimpiezaDatos');
 const { registrarBitacora } = require('../services/BitacoraService');
@@ -156,6 +157,15 @@ const registro = async(req, res) => {
             bloqueado_hasta: null,
             id_empleado: null
         }, { transaction: trans });
+        
+        const rolCliente = await Rol.findOne({ 
+            where: { nombre_rol: 'Usuario' }, 
+            transaction: trans 
+        });
+        
+            if (rolCliente) {
+            await newUser.addRol(rolCliente, { transaction: trans }); 
+        }
         
         await actualizarDVV(User, 'users', 'id_user', { transaction: trans });
         try {

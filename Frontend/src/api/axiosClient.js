@@ -29,7 +29,7 @@ axiosClient.interceptors.response.use(
       const { status } = error.response;
       if (status === 401 || status === 403) {
         localStorage.removeItem('token');
-        window.location.href = '/login';
+        // window.location.href = '/login';
       }
       const message = error.response.data?.mensaje || 'Error en la petición del servidor';
       return Promise.reject(new Error(message));
