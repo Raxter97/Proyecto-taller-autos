@@ -1,7 +1,6 @@
 const crypto = require('crypto');
 const AuditoriaDvv = require('../models/AuditoriaDvv');
 const { calcularDVV } = require('./CalculosDv');
-const { registrarBitacora } = require('../services/BitacoraService');
 
 /**
  * @param {Object} Model 
@@ -58,6 +57,7 @@ const verificarDVVTabla = async (Model, nombreTabla, pkField = 'id_user', req = 
         const dvvActual = calcularDVV(Dvhs);
 
         if (dvvActual !== auditoriaRegistro.dvv) {
+            const { registrarBitacora } = require('../services/BitacoraService');
             try {
                 await registrarBitacora({
                     accion: 'DISCREPANCIA_DVV_CRITICA',

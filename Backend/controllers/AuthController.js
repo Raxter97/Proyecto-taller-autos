@@ -1,7 +1,8 @@
 const User = require("../models/User.models");
+const Rol = require('../models/Rol');
+const Permiso = require('../models/Permiso');
 const {comparePassword, hashPassword} = require('../utils/Encriptacion');
 const {calcularDVH} = require('../utils/CalculosDv');
-const Rol = require("../models/Rol");
 const {actualizarDVV, verificarDVVTabla} = require('../utils/LogicaDvv');
 const {limpiarDatosUsuario}= require('../utils/LimpiezaDatos');
 const { registrarBitacora } = require('../services/BitacoraService');
@@ -204,13 +205,26 @@ const registro = async(req, res) => {
 const obtenerPerfil = async(req, res) => {
     try {
         const user = await User.findByPk(req.user.id_user, {
-            attributes: { exclude: ['password_hash', 'dvh'] }
+            attributes: { exclude: ['password_hash', 'dvh'] },
+            include: [{
+                model: Rol,
+                as: 'roles',  
+                through: { attributes: [] }, 
+                include: [{
+                    model: Permiso,
+                    as: 'permisos', 
+                    through: { attributes: [] }
+                }]
+            }]
         });
+
         if (!user) {
-            return res.status(404).json({ mensaje: "User no encontrado" });
+            return res.status(404).json({ mensaje: 'Usuario no encontrado' });
         }
+
         res.status(200).json({ user });
-    } catch(error) {
+    } catch (error) {
+        console.error("Error en obtenerPerfil:", error); 
         res.status(500).json({ mensaje: 'Error interno del servidor.', error: error.message });
     }
 };

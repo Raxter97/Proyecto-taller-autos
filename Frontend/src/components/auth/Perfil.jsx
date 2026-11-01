@@ -3,7 +3,7 @@ import { authApi } from '../../api/authApi';
 
 const dominiosComunes = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
 
-export default function Perfil({ onLogout }) {
+export default function Perfil({ onLogout, onNavegar }) { 
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
   const [emailUsuario, setEmailUsuario] = useState('');
@@ -14,22 +14,48 @@ export default function Perfil({ onLogout }) {
   const [passwordNueva, setPasswordNueva] = useState('');
   const [passMsg, setPassMsg] = useState('');
 
+  // Nuevos estados para permisos y validación de empleado
+  const [permisos, setPermisos] = useState([]);
+  const [esEmpleado, setEsEmpleado] = useState(false);
+
   useEffect(() => {
     authApi.obtenerPerfil()
       .then((data) => {
-        setUser(data.user);
+        const usuarioData = data.user;
+        setUser(usuarioData);
 
-        const partes = data.user.email.split('@');
+        // Lógica de separación de email
+        const partes = usuarioData.email.split('@');
         if (partes.length === 2) {
           setEmailUsuario(partes[0]);
-          
           if (!dominiosComunes.includes(partes[1])) {
             dominiosComunes.push(partes[1]);
           }
           setEmailDominio(partes[1]);
         } else {
-          setEmailUsuario(data.user.email);
+          setEmailUsuario(usuarioData.email);
         }
+
+        // Extracción de Permisos y Roles 
+        const listaPermisos = [];
+        let tieneRolEmpleado = false;
+
+        if (usuarioData.Rols && usuarioData.Rols.length > 0) {
+          usuarioData.Rols.forEach(rol => {
+            if (['Administrativo', 'Recepcionista', 'Mecánico', 'Encargado de deposito'].includes(rol.nombre_rol)) {
+              tieneRolEmpleado = true;
+            }
+            if (rol.Permisos) {
+              rol.Permisos.forEach(p => {
+                if (!listaPermisos.includes(p.nombre_permiso)) {
+                  listaPermisos.push(p.nombre_permiso);
+                }
+              });
+            }
+          });
+        }
+        setPermisos(listaPermisos);
+        setEsEmpleado(tieneRolEmpleado);
       })
       .catch((err) => {
         setError(err.message);
@@ -84,14 +110,41 @@ export default function Perfil({ onLogout }) {
 
   return (
     <div className="perfil-container">
-      <h2>Panel Principal / Perfil de Usuario</h2>
+      <h2>Perfil de Usuario</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {successMsg && <p style={{ color: 'green' }}>{successMsg}</p>}
+      
       <div className="perfil-card">
-        <p><strong>ID de Usuario:</strong> {user.id_user}</p>
-        <p><strong>ID de Empleado Asociado:</strong> {user.id_empleado}</p>
         <p><strong>Estado de Cuenta:</strong> {user.estado ? 'Activo' : 'Inactivo'}</p>
         
+        {/* Listado de Permisos de la Cuenta */}
+        <div style={{ margin: '15px 0', textAlign: 'left', background: '#222', padding: '10px', borderRadius: '5px' }}>
+          <p style={{ margin: '0 0 5px 0' }}><strong>Permisos asignados:</strong></p>
+          {permisos.length > 0 ? (
+            <ul style={{ margin: '0', paddingLeft: '20px' }}>
+              {permisos.map((p, idx) => (
+                <li key={idx} style={{ fontSize: '0.9rem', color: '#ccc' }}>{p}</li>
+              ))}
+            </ul>
+          ) : (
+            <p style={{ margin: '0', fontSize: '0.9rem', color: '#888' }}>Sin permisos administrativos (Cliente estándar)</p>
+          )}
+        </div>
+
+        {/* Sección Condicional para Empleados */}
+        {esEmpleado && (
+          <div style={{ border: '1px solid #646cff', padding: '15px', margin: '15px 0', borderRadius: '5px', background: 'rgba(100, 108, 255, 0.1)' }}>
+            <p style={{ margin: '0 0 10px 0' }}><strong>Panel de Operaciones Internas</strong></p>
+            <button 
+              type="button"
+              onClick={() => onNavegar('usuarios')} 
+              style={{ backgroundColor: '#646cff', color: 'white', border: 'none', padding: '8px 12px', cursor: 'pointer' }}
+            >
+              Ir a Gestión de Usuarios / Empleados
+            </button>
+          </div>
+        )}
+
         <form onSubmit={handleUpdateEmail} style={{ marginTop: '15px' }}>
           <div>
             <label><strong>Actualizar Correo Electrónico:</strong></label>

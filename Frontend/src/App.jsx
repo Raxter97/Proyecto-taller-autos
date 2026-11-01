@@ -147,7 +147,7 @@ export default function App() {
         {currentView === 'factura' && <Factura />}
         {currentView === 'bitacora' && <Bitacora />}
         {currentView === 'usuarios' && <UserAdmin />}
-        {currentView === 'perfil' && <Perfil onLogout={handleLogout} />}
+        {currentView === 'perfil' && (<Perfil onLogout={handleLogout} onNavegar={(vista) => setCurrentView(vista)} />)}
       </main>
     </div>
   );

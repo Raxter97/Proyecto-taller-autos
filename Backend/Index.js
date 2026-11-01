@@ -23,7 +23,12 @@ require('./models/DetalleInforme');
 require('./models/CompraRepuesto'); 
 require('./models/DetalleCompra'); 
 
-const { User, Permiso, Parking, Servicio, Repuesto, Rol, ServicioRealizado, RepuestoUsado, Bitacora, Cliente, Empleado, Auto, Turno, CompraRepuesto, DetalleCompra, Proveedor, Informe, Factura } = sequelize.models;
+const { 
+  User, Permiso, Parking, Servicio, Repuesto, Rol, 
+  ServicioRealizado, RepuestoUsado, Bitacora, Cliente, 
+  Empleado, Auto, Turno, CompraRepuesto, DetalleCompra, 
+  Proveedor, Informe, Factura 
+} = sequelize.models;
 
 Auto.belongsTo(Cliente, { foreignKey: 'id_cliente', as: 'cliente' });
 Auto.hasMany(Informe, { foreignKey: 'id_auto', as: 'informes' });
@@ -34,6 +39,7 @@ Bitacora.belongsTo(User, { foreignKey: 'id_usuario', as: 'usuario' });
 
 Cliente.hasMany(Auto, { foreignKey: 'id_cliente', as: 'autos' });
 Cliente.hasMany(Turno, { foreignKey: 'id_cliente', as: 'turnos' });
+
 CompraRepuesto.belongsTo(Proveedor, { foreignKey: 'id_proveedor', as: 'proveedor' });
 CompraRepuesto.hasMany(DetalleCompra, { foreignKey: 'id_compra', as: 'detalles' });
 
@@ -68,15 +74,14 @@ Repuesto.hasMany(DetalleCompra, { foreignKey: 'id_repuesto', as: 'detallesCompra
 
 Servicio.hasMany(ServicioRealizado, { foreignKey: 'id_servicio', as: 'serviciosRealizados' });
 
-Rol.belongsToMany(User, { through: 'usuario_rol', foreignKey: 'id_rol', otherKey: 'id_usuario', as: 'usuarios' });
+Rol.belongsToMany(User, { through: 'user_rol', foreignKey: 'id_rol', otherKey: 'id_user', as: 'usuarios' });
 Rol.belongsToMany(Permiso, { through: 'rol_permiso', foreignKey: 'id_rol', otherKey: 'id_permiso', as: 'permisos' });
 
 Turno.belongsTo(Cliente, { foreignKey: 'id_cliente', as: 'cliente' });
 Turno.belongsTo(Auto, { foreignKey: 'id_auto', as: 'auto' });
 
 User.belongsTo(Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
-User.belongsToMany(Rol, { through: 'usuario_rol', foreignKey: 'id_usuario', otherKey: 'id_rol', as: 'roles' });
-
+User.belongsToMany(Rol, { through: 'user_rol', foreignKey: 'id_user', otherKey: 'id_rol', as: 'roles' });
 
 async function main() {
   try {
