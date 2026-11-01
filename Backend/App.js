@@ -28,9 +28,9 @@ app.use('/api/parking', ParkingRoutes);
 app.use('/api/turnos', TurnoRoutes);
 app.use('/api/inventario', InventarioRoutes);
 app.use('/api/servicios', ServicioRoutes);
-app.use('/api/taller/informes', informeRoutes);
-app.use('/api/facturacion', FacturaRoutes); 
-app.use('/api/usuarios', UserRoutes);
+app.use('/api/informes', informeRoutes);
+app.use('/api/facturas', FacturaRoutes); 
+app.use('/api/user', UserRoutes);
 app.use('/api/bitacora', BitacoraRoutes);
 
 app.use('/api/auth', AuthRoutes);

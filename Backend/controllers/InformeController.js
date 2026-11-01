@@ -167,11 +167,13 @@ const imputarServicio = async (req, res) => {
         const { id_informe } = req.params;
         const { id_servicio } = req.body;
 
-        const informe = await Informe.findByPk(id_informe);
-        if (!informe ) {
+        const informe = await Informe.findByPk(id_informe, { transaction: trans });
+        if (!informe) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'Informe no encontrado.' });
         }
         if (informe.estado === true) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'Informe ya finalizado.' });
         }
 
@@ -186,6 +188,8 @@ const imputarServicio = async (req, res) => {
             nivel_impacto: 'Baja',
             id_usuario: req.user.id_user
         }, { transaction: trans });
+
+        await trans.commit();
         res.status(201).json({ mensaje: 'Servicio imputado correctamente', servicioRealizado });
     } catch (error) {
         await trans.rollback();
@@ -245,4 +249,20 @@ const finalizarInforme = async (req, res) => {
     }
 };
 
-module.exports = { crearInforme, imputarRepuesto, imputarServicio, finalizarInforme };
+const obtenerInformes = async (req, res) => {
+    try {
+        const informes = await Informe.findAll({
+            include: [
+                { model: Auto, as: 'auto' },
+                { model: Empleado, as: 'empleado' },
+                { model: RepuestoUsado, as: 'repuestosUsados' },
+                { model: ServicioRealizado, as: 'serviciosRealizados' }
+            ]
+        });
+        res.status(200).json({ informes });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener los informes', error: error.message });
+    }
+};
+
+module.exports = { crearInforme, imputarRepuesto, imputarServicio, finalizarInforme, obtenerInformes };

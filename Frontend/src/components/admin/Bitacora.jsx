@@ -13,7 +13,7 @@ export default function Bitacora() {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h2>Bitácora de Auditoría del Sistema</h2>
+      <h2>Bitácora del Sistema</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <table border="1" cellPadding="8" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', marginTop: '15px' }}>
         <thead>

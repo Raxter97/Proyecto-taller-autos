@@ -1,6 +1,7 @@
 const sequelize = require('../config/Database');
 const Factura = require('../models/Factura');
 const Informe = require('../models/Informe');
+const Auto = require('../models/Auto');
 const { ServicioRealizado, RepuestoUsado } = require('../models/DetalleInforme');
 const catalogoServicio = require('../models/Servicio');
 const Repuesto = require('../models/Repuesto');
@@ -52,7 +53,7 @@ const generarFactura = async (req, res) => {
             }
         }
 
-        // Calcular total de repuestos usados
+        
         const repuestosUsados = await RepuestoUsado.findAll({ 
             where: { id_informe },
             transaction: trans 
@@ -195,4 +196,52 @@ const registrarPago = async (req, res) => {
     }
 };
 
-module.exports = { generarFactura, registrarPago };
+const obtenerFacturas = async (req, res) => {
+    try {
+        const facturas = await Factura.findAll();
+        res.status(200).json({ facturas });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener facturas', error: error.message });
+    }
+};
+
+const obtenerFacturasPorAuto = async (req, res) => {
+    try {
+        const { id_auto } = req.params;
+        const facturas = await Factura.findAll({
+            include: [{
+                model: Informe,
+                as: 'informe',
+                where: { id_auto },
+                include: [{
+                    model: Auto,
+                    as: 'auto'
+                }]
+            }]
+        });
+        res.status(200).json({ facturas });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener facturas por auto', error: error.message });
+    }
+};
+
+const obtenerFacturasPorCliente = async (req, res) => {
+    try {
+        const { id_cliente } = req.params;
+        const facturas = await Factura.findAll({
+            include: [{
+                model: Informe,
+                as: 'informe',
+                include: [{
+                    model: Auto,
+                    as: 'auto',
+                    where: { id_cliente }
+                }]
+            }]
+        });
+        res.status(200).json({ facturas });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener facturas por cliente', error: error.message });
+    }
+};
+module.exports = { generarFactura, registrarPago,obtenerFacturasPorAuto,obtenerFacturasPorCliente,obtenerFacturas };
