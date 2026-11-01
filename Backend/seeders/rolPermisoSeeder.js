@@ -3,7 +3,7 @@ const Permiso = require('../models/Permiso');
 
 const seedRolesYPermisos = async () => {
     try {
-        // 1. Crear los 4 Roles del Sistema
+        
         const [admin] = await Rol.findOrCreate({ 
             where: { nombre_rol: 'Administrativo' }, 
             defaults: { descripcion: 'Gestión financiera, parametrización de cuentas, personal, alta de proveedores y auditoría', estado: true, dvh: 'dummy' } 
