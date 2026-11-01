@@ -34,24 +34,21 @@ const obtenerEmpleados = async (req, res) => {
 const crearEmpleado = async (req, res) => {
     const trans = await sequelize.transaction();
     try {
-        //agregar para cuarta entrega
-        //  const { legajo, nombre, apellido, email, disponibilidad, sueldo, especialidades, rol } = req.body;
         
-        const { legajo, nombre, apellido, email, disponibilidad, sueldo } = req.body;
+        const { legajo, nombre, apellido, email, disponibilidad, sueldo, especialidades, rol } = req.body;
         if (!legajo || !nombre || !apellido || !email || !disponibilidad || sueldo === undefined) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Campos faltantes.' });
         }
 
-        // agregar para cuarta entrega 
-        // if (rol === 'Mecánico' || rol === 'mecanico' || (especialidades && Array.isArray(especialidades))) {
-        //     if (!especialidades || especialidades.length === 0) {
-        //         await trans.rollback();
-        //         return res.status(400).json({ 
-        //             mensaje: 'No se puede guardar: se debe asignar al menos una competencia técnica básica al usuario operativo (mecánico).' 
-        //         });
-        //     }
-        // }
+        if (rol === 'Mecánico' || rol === 'mecanico' || (especialidades && Array.isArray(especialidades))) {
+            if (!especialidades || especialidades.length === 0) {
+                await trans.rollback();
+                return res.status(400).json({ 
+                    mensaje: 'No se puede guardar: se debe asignar al menos una competencia técnica básica al usuario operativo (mecánico).' 
+                });
+            }
+        }
 
         const empleadoExistente = await Empleado.findOne({ 
             where: { legajo },
@@ -118,15 +115,14 @@ const modificarEmpleado = async (req, res) => {
             return res.status(404).json({ mensaje: 'Empleado no encontrado.' });
         }
 
-        // agregar para cuarta entrega
-        // if (rol === 'Mecánico' || rol === 'mecanico' || especialidades !== undefined) {
-        //     if (especialidades && Array.isArray(especialidades) && especialidades.length === 0) {
-        //         await trans.rollback();
-        //         return res.status(400).json({ 
-        //             mensaje: 'No se puede actualizar: el mecánico debe conservar al menos una competencia técnica básica.' 
-        //         });
-        //     }
-        // }
+        if (rol === 'Mecánico' || rol === 'mecanico' || especialidades !== undefined) {
+            if (especialidades && Array.isArray(especialidades) && especialidades.length === 0) {
+                await trans.rollback();
+                return res.status(400).json({ 
+                    mensaje: 'No se puede actualizar: el mecánico debe conservar al menos una competencia técnica básica.' 
+                });
+            }
+        }
 
         const estadoPrevio = empleado.toJSON();
 

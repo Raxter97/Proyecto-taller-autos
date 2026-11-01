@@ -31,13 +31,14 @@ const consultarTurnos = async (req, res) => {
 
 const consultarTurnosUser = async (req, res) => {
   try {
-    // 1. Buscar el cliente vinculado al email del token actual
-    const cliente = await Cliente.findOne({ where: { email: req.user.email } });
+    
+    const cliente = await Cliente.findOne({ 
+        where: { email: req.user.email } 
+    });
     if (!cliente) {
       return res.status(404).json({ mensaje: 'No hay un perfil de cliente asociado a esta cuenta.' });
     }
 
-    // 2. Traer solo los turnos que pertenecen a su id_cliente
     const turnos = await Turno.findAll({
       where: { id_cliente: cliente.id_cliente },
       include: [{ model: Auto, attributes: ['marca', 'modelo', 'patente'] }]

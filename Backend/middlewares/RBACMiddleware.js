@@ -10,7 +10,6 @@ const verificarPermiso = (nombrePermisoRequerido) => {
                 return res.status(401).json({ mensaje: 'No autorizado.' });
             }
 
-            // Buscar usuario e incluir sus roles y los permisos de dichos roles
             const user = await User.findByPk(userId, {
                 include: {
                     model: Rol,
@@ -26,9 +25,9 @@ const verificarPermiso = (nombrePermisoRequerido) => {
                 return res.status(403).json({ mensaje: 'Acceso denegado: sin roles asignados.' });
             }
 
-            const permisosUsuario = user.roles.flatMap(rol => 
+            const permisosUsuario = user.roles.map(rol => 
                 rol.permisos ? rol.permisos.map(p => p.nombre_permiso) : []
-            );
+            ).flat();
 
             // Verifica si el usuario posee el permiso requerido
             if (!permisosUsuario.includes(nombrePermisoRequerido)) {

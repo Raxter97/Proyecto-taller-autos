@@ -1,3 +1,4 @@
+const sequelize = require('../config/Database'); 
 const Auto = require('../models/Auto');
 const Cliente = require('../models/Cliente');
 const Informe = require('../models/Informe');
@@ -10,24 +11,30 @@ const { actualizarDVV } = require('../utils/LogicaDvv');
 const { registrarBitacora } = require('../services/BitacoraService');
 
 const crearAuto = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { patente, marca, modelo, id_cliente } = req.body;
         if (!patente || !marca || !modelo || !id_cliente) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'Campos faltantes.' });
         }
 
-        const cliente = await Cliente.findByPk(id_cliente);
+        const cliente = await Cliente.findByPk(id_cliente, { transaction: trans });
         if (!cliente) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'El cliente no existe ' });
         }
         if (!cliente.estado) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'El cliente se encuentra inactivo' });
         }
 
-        const autoExistente = await Auto.findOne({ where: { patente } });
+        const autoExistente = await Auto.findOne({ where: { patente }, transaction: trans });
         if (autoExistente) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'La patente ya está registrada.' });
         }
+
         const datosDVH = {
             patente: patente.toUpperCase(),
             marca,
@@ -44,36 +51,40 @@ const crearAuto = async (req, res) => {
             id_cliente: Number(id_cliente),
             estado: true,
             dvh
-        });
+        }, { transaction: trans });
 
-        await actualizarDVV(Auto, 'autos', 'id_auto');
+        await actualizarDVV(Auto, 'autos', 'id_auto', { transaction: trans });
 
         await registrarBitacora({
             accion: 'INSERT_AUTO',
             descripcion: JSON.stringify({ auto: nuevoAuto }),
             nivel_impacto: 'Media',
             id_usuario: req.user.id_user
-        });
+        }, { transaction: trans });
 
+        await trans.commit();
         res.status(201).json({ mensaje: 'Vehículo registrado exitosamente'});
     } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
-        return res.status(400).json({ 
-            mensaje: 'El registro ya existe o viola una restricción única.', 
-            campo: error.errors[0]?.path 
-        });
+        await trans.rollback();
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({ 
+                mensaje: 'El registro ya existe o viola una restricción única.', 
+                campo: error.errors[0]?.path 
+            });
+        }
+        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
-    res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
-}
 };
 
 const modificarAuto = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { id } = req.params;
         const { patente, marca, modelo, estado } = req.body;
 
-        const auto = await Auto.findByPk(id);
+        const auto = await Auto.findByPk(id, { transaction: trans });
         if (!auto) {
+            await trans.rollback();
             return res.status(404).json({ mensaje: 'Vehículo no encontrado.' });
         }
 
@@ -92,27 +103,29 @@ const modificarAuto = async (req, res) => {
             estado: Boolean(auto.estado)
         };
         auto.dvh = calcularDVH(datosDVH);
-        await auto.save();
+        await auto.save({ transaction: trans });
 
-        await actualizarDVV(Auto, 'autos', 'id_auto');
+        await actualizarDVV(Auto, 'autos', 'id_auto', { transaction: trans });
 
         await registrarBitacora({
             accion: 'UPDATE_AUTO',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: auto.toJSON() }),
             nivel_impacto: 'Baja',
             id_usuario: req.user.id_user
-        });
+        }, { transaction: trans });
 
+        await trans.commit();
         res.status(200).json({ mensaje: 'Vehículo actualizado correctamente'});
     } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
-        return res.status(400).json({ 
-            mensaje: 'El registro ya existe o viola una restricción única.', 
-            campo: error.errors[0]?.path 
-        });
+        await trans.rollback();
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({ 
+                mensaje: 'El registro ya existe o viola una restricción única.', 
+                campo: error.errors[0]?.path 
+            });
+        }
+        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
-    res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
-}
 };
 
 const consultarHistorial = async (req, res) => {
@@ -123,7 +136,6 @@ const consultarHistorial = async (req, res) => {
             return res.status(404).json({ mensaje: 'Vehículo no encontrado.' });
         }
 
-        // Consultar el historial completo cruzando con informes, empleados, servicios y repuestos
         const historial = await Informe.findAll({
             where: { id_auto: auto.id_auto },
             include: [
@@ -181,10 +193,12 @@ const consultarHistorialUser = async (req, res) => {
 };
 
 const desactivarAuto = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { id } = req.params;
-        const auto = await Auto.findByPk(id);
+        const auto = await Auto.findByPk(id, { transaction: trans });
         if (!auto) {
+            await trans.rollback();
             return res.status(404).json({ mensaje: 'Vehículo no encontrado.' });
         }
 
@@ -199,22 +213,22 @@ const desactivarAuto = async (req, res) => {
             estado: false
         };
         auto.dvh = calcularDVH(datosDVH);
-        await auto.save();
+        await auto.save({ transaction: trans });
 
-        await actualizarDVV(Auto, 'autos', 'id_auto');
+        await actualizarDVV(Auto, 'autos', 'id_auto', { transaction: trans });
         await registrarBitacora({
             accion: 'BAJA_LOGICA_AUTO',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: auto.toJSON() }),
             nivel_impacto: 'Alta',
             id_usuario: req.user.id_user
-        });
+        }, { transaction: trans });
 
+        await trans.commit();
         res.status(200).json({ mensaje: 'Vehículo dado de baja lógica correctamente' });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
 };
 
-
-
-module.exports = { crearAuto, modificarAuto, consultarHistorial,desactivarAuto,consultarHistorialUser  };
+module.exports = { crearAuto, modificarAuto, consultarHistorial, desactivarAuto, consultarHistorialUser };

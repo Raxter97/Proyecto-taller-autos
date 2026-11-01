@@ -87,7 +87,7 @@ const registrarCuentaAdmin = async (req, res) => {
             descripcion: JSON.stringify({ id_user: nuevoUsuario.id_user, email, id_empleado, rolesIds }),
             nivel_impacto: 'Alta',
             id_usuario: req.user.id_user
-        });
+        }, { transaction: trans });
 
         await trans.commit();
         res.status(201).json({ mensaje: 'Cuenta de usuario creada y roles asignados exitosamente.' });
@@ -151,16 +151,16 @@ const modificarCuentaAdmin = async (req, res) => {
                     dvh: dvhRol
                 }, { transaction: trans });
             }
-            await actualizarDVV(UserRol, 'user_rol', 'id_usuario_rol');
+            await actualizarDVV(UserRol, 'user_rol', 'id_usuario_rol', { transaction: trans });
         }
 
-        await actualizarDVV(User, 'users', 'id_user');
+        await actualizarDVV(User, 'users', 'id_user', { transaction: trans });
         await registrarBitacora({
             accion: 'ADMIN_MODIFICAR_CUENTA',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: usuario.toJSON(), rolesIds }),
             nivel_impacto: 'Alta',
             id_usuario: req.user.id_user
-        });
+        }, { transaction: trans });
 
         await trans.commit();
         res.status(200).json({ mensaje: 'Cuenta y roles actualizados correctamente.' });
@@ -177,14 +177,17 @@ const modificarCuentaAdmin = async (req, res) => {
 };
 
 const desactivarCuentaAdmin = async (req, res) => {
+    const trans = await sequelize.transaction();
     try {
         const { id } = req.params;
         if (Number(id) === req.user.id_user) {
+            await trans.rollback();
             return res.status(400).json({ mensaje: 'No puedes desactivar tu propia cuenta activa.' });
         }
 
         const usuario = await User.findByPk(id);
         if (!usuario) {
+            await trans.rollback();
             return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
         }
 
@@ -198,18 +201,20 @@ const desactivarCuentaAdmin = async (req, res) => {
             id_empleado: usuario.id_empleado
         };
         usuario.dvh = calcularDVH(datosDVH);
-        await usuario.save();
+        await usuario.save({ transaction: trans });
 
-        await actualizarDVV(User, 'users', 'id_user');
+        await actualizarDVV(User, 'users', 'id_user', { transaction: trans });
         await registrarBitacora({
             accion: 'ADMIN_BAJA_LOGICA_CUENTA',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: usuario.toJSON() }),
             nivel_impacto: 'Alta',
             id_usuario: req.user.id_user
-        });
+        }, { transaction: trans });
 
+        await trans.commit();
         res.status(200).json({ mensaje: 'Cuenta de usuario desactivada correctamente.' });
     } catch (error) {
+        await trans.rollback();
         res.status(500).json({ mensaje: 'Error al desactivar la cuenta', error: error.message });
     }
 };
