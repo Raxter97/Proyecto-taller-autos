@@ -51,10 +51,9 @@ export default function App() {
     );
   }
 
-  // Vista privada con Menú de Navegación principal
   return (
     <div className="app-main-container">
-      {/* Barra de Navegación de Módulos */}
+      {/* Barra de Navegación */}
       <nav style={{ 
         display: 'flex', 
         gap: '10px', 
