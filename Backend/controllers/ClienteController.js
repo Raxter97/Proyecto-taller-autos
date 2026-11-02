@@ -54,14 +54,15 @@ const crearCliente = async (req, res) => {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'El DNI ya pertenece a un cliente activo.' });
         }
+
         const datosDVH = {
-            apellido,
-            direccion: direccion || '',
             dni: Number(dni),
-            email,
-            estado: true,
             nombre,
-            telefono
+            apellido,
+            email,
+            telefono,
+            direccion: direccion || '',
+            estado: true
         };
         const dvh = calcularDVH(datosDVH);
 
@@ -94,7 +95,7 @@ const crearCliente = async (req, res) => {
             campo: error.errors[0]?.path 
             });
         }
-    res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
     }
 };
 

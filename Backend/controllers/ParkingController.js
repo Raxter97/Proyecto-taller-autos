@@ -70,7 +70,7 @@ const registrarIngreso = async (req, res) => {
         plaza.dvh = calcularDVH(datosDVH);
         await plaza.save({ transaction: trans });
 
-        await actualizarDVV(Parking, 'parking', 'nro_lugar', { transaction: trans });
+        await actualizarDVV(Parking, 'parking', 'nro_lugar', 'id_parking', { transaction: trans });
 
         await registrarBitacora({
             accion: 'INGRESO_PARKING',
@@ -139,7 +139,7 @@ const registrarSalida = async (req, res) => {
         plaza.dvh = calcularDVH(datosDVH);
         await plaza.save({ transaction: trans });
 
-        await actualizarDVV(Parking, 'parking', 'nro_lugar', { transaction: trans });
+         await actualizarDVV(Parking, 'parking', 'nro_lugar', 'id_parking', { transaction: trans });
         
         await registrarBitacora({
             accion: 'SALIDA_PARKING',

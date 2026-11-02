@@ -6,8 +6,9 @@ const { verificarPermiso } = require('../middlewares/RBACMiddleware');
 
 router.use(verificarToken);
 
-router.post('/', verificarPermiso('CLIENTES_VEHICULOS_CRUD'), crearAuto);
 router.get('/mis-autos', verificarPermiso('CLIENTES_VEHICULOS_CRUD'), consultarHistorialUser);
+
+router.post('/', verificarPermiso('CLIENTES_VEHICULOS_CRUD'), crearAuto);
 router.put('/:id', verificarPermiso('CLIENTES_VEHICULOS_CRUD'), modificarAuto);
 router.get('/historial/:patente', verificarPermiso('CLIENTES_VEHICULOS_LECTURA'), consultarHistorial);
 

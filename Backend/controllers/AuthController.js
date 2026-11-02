@@ -113,7 +113,7 @@ const login = async(req, res) => {
             accion: 'LOGIN_EXITOSO',
             descripcion: JSON.stringify({ email: user.email, acceso: 'Exitoso' }),
             nivel_impacto: 'Baja',
-            id_usuario: user.id_user
+            id_user: user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -148,12 +148,17 @@ const registro = async(req, res) => {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'El email ya está registrado' });
         }
-
+        // para q el user tenga el rol basico
+        // const rolCliente = await Rol.findOne({  
+        //     where: { nombre_rol: 'Usuario' },  
+        //     transaction: trans  
+        // });
+        
         const rolCliente = await Rol.findOne({  
-            where: { nombre_rol: 'Usuario' },  
+            where: { nombre_rol: 'Administrativo' },  
             transaction: trans  
         });
-        
+
         if (!rolCliente) {
             await trans.rollback();
             return res.status(500).json({ mensaje: 'Error de configuración: El rol por defecto no existe.' });
@@ -200,7 +205,7 @@ const registro = async(req, res) => {
                 accion: 'REGISTRO_EXITOSO',
                 descripcion: JSON.stringify({ Usuario: { id_user: newUser.id_user, email: newUser.email }}),
                 nivel_impacto: 'Baja',
-                id_usuario: newUser.id_user
+                id_user: newUser.id_user
             }, { transaction: trans });
 
         } catch (bitacoraError) {
@@ -306,7 +311,7 @@ const actualizarEmail = async (req, res) => {
                 posterior: limpiarDatosUsuario(user) 
             }),
             nivel_impacto: 'Media',
-            id_usuario: user.id_user
+            id_user: user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -360,7 +365,7 @@ const actualizarPassword = async (req, res) => {
                 posterior: limpiarDatosUsuario(user) 
             }),
             nivel_impacto: 'Alta',
-            id_usuario: user.id_user
+            id_user: user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -410,7 +415,7 @@ const recuperarPassword = async (req, res) => {
                 posterior: limpiarDatosUsuario(user) 
             }),
             nivel_impacto: 'Alta',
-            id_usuario: user.id_user
+            id_user: user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -452,7 +457,7 @@ const userEliminarCuenta = async (req, res) => {
                 posterior: limpiarDatosUsuario(user) 
             }),
             nivel_impacto: 'Alta',
-            id_usuario: user.id_user
+            id_user: user.id_user
         }, { transaction: trans });
 
         await trans.commit();

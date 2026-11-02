@@ -12,15 +12,17 @@ const { registrarBitacora } = require('../services/BitacoraService');
 const crearInforme = async (req, res) => {
     const trans = await sequelize.transaction();
     try {
-        const { id_auto, id_empleado, descripcion } = req.body;
-        if (!id_auto || !id_empleado || !descripcion) {
+        const { patente, legajo, descripcion } = req.body;
+        if (!patente || !legajo || !descripcion) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Todos los campos son obligatorios.' });
         }
 
-        const auto = await Auto.findByPk(
-            id_auto, { transaction: trans }
-        );
+        const auto = await Auto.findOne({ 
+            where: { patente: patente.toUpperCase() }, 
+            transaction: trans 
+        });
+
         if (!auto) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Vehículo inválido' });
@@ -30,9 +32,11 @@ const crearInforme = async (req, res) => {
             return res.status(400).json({ mensaje: 'Vehículo inactivo.' });
         }
 
-        const empleado = await Empleado.findByPk(
-            id_empleado, { transaction: trans }
-        );
+        const empleado = await Empleado.findOne({ 
+            where: { legajo: Number(legajo) }, 
+            transaction: trans 
+        });
+
         if (!empleado ) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Empleado inválido' });
@@ -49,21 +53,21 @@ const crearInforme = async (req, res) => {
             descripcion, 
             estado: false, 
             fecha, 
-            id_auto: Number(id_auto), 
-            id_empleado: Number(id_empleado) 
+            id_auto: Number(auto.id_auto), 
+            id_empleado: Number(empleado.id_empleado) 
         };
         const dvh = calcularDVH(datosDVH);
 
         const nuevoInforme = await Informe.create({
             fecha, descripcion, estado, dvh,
-            id_auto: Number(id_auto),
-            id_empleado: Number(id_empleado)
+            id_auto: Number(auto.id_auto),
+            id_empleado: Number(empleado.id_empleado)
         }, { transaction: trans });
 
-        // BUSCAR Y ACTUALIZAR EL TURNO ASOCIADO A 'Atendido'
+        // ACTUALIZAR TURNO A 'Atendido'
         const turnoAsociado = await Turno.findOne({
             where: { 
-                id_auto: Number(id_auto),
+                id_auto: Number(auto.id_auto),
                 estado: ['Agendado', 'Confirmado']
             },
             order: [['fecha_hora', 'ASC']],
@@ -95,7 +99,12 @@ const imputarRepuesto = async (req, res) => {
     const trans = await sequelize.transaction();
     try {
         const { id_informe } = req.params;
-        const { id_repuesto, cantidad } = req.body;
+        const { descripcionRepuesto, cantidad } = req.body;
+
+       if (!descripcionRepuesto || !cantidad) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'La descripción del repuesto y la cantidad son obligatorias.' });
+        }
 
         const informe = await Informe.findByPk(
             id_informe,
@@ -110,10 +119,11 @@ const imputarRepuesto = async (req, res) => {
             return res.status(400).json({ mensaje: 'Informe finalizado.' });
         }
 
-        const repuesto = await Repuesto.findByPk(
-            id_repuesto, 
-            { transaction: trans }
-        );
+        const repuesto = await Repuesto.findOne({ 
+            where: { descripcion: descripcionRepuesto }, 
+            transaction: trans 
+        });
+
         if (!repuesto ) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Repuesto inválido .' });
@@ -121,7 +131,8 @@ const imputarRepuesto = async (req, res) => {
         if (!repuesto.estado) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Repuesto no encontrado.' });
-        }if (repuesto.stock < cantidad) {
+        }
+        if (repuesto.stock < cantidad) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Stock insuficiente.' });
         }
@@ -131,7 +142,7 @@ const imputarRepuesto = async (req, res) => {
 
         const repuestoUsado = await RepuestoUsado.create({
             id_informe: Number(id_informe),
-            id_repuesto: Number(id_repuesto),
+            id_repuesto: Number(repuesto.id_repuesto),
             cantidad: Number(cantidad)
         }, { transaction: trans });
 
@@ -148,7 +159,7 @@ const imputarRepuesto = async (req, res) => {
         await actualizarDVV(Informe, 'informes', 'id_informe', { transaction: trans });
         await registrarBitacora({
             accion: 'INSERT_REPUESTO_USADO',
-            descripcion: JSON.stringify({ id_informe, id_repuesto, cantidad }),
+            descripcion: JSON.stringify({ id_informe, id_repuesto: repuesto.id_repuesto, cantidad }),
             nivel_impacto: 'Media',
             id_user: req.user.id_user
         }, { transaction: trans });
@@ -165,7 +176,12 @@ const imputarServicio = async (req, res) => {
     const trans = await sequelize.transaction();
     try {
         const { id_informe } = req.params;
-        const { id_servicio } = req.body;
+        const { descripcionServicio } = req.body;
+
+        if (!descripcionServicio) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'La descripción del servicio es obligatoria.' });
+        }
 
         const informe = await Informe.findByPk(id_informe, { transaction: trans });
         if (!informe) {
@@ -177,14 +193,27 @@ const imputarServicio = async (req, res) => {
             return res.status(400).json({ mensaje: 'Informe ya finalizado.' });
         }
 
+        const servicio = await Servicio.findOne({ 
+            where: { descripcion: descripcionServicio }, 
+            transaction: trans 
+        });
+        if (!servicio) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'Servicio no encontrado por descripción.' });
+        }
+        if (!servicio.estado) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'El servicio se encuentra inactivo.' });
+        }
+
         const servicioRealizado = await ServicioRealizado.create({
             id_informe: Number(id_informe),
-            id_servicio: Number(id_servicio)
+            id_servicio: Number(servicio.id_servicio)
         }, { transaction: trans });
 
         await registrarBitacora({
             accion: 'INSERT_SERVICIO_REALIZADO',
-            descripcion: JSON.stringify({ id_informe, id_servicio }),
+            descripcion: JSON.stringify({ id_informe, id_servicio: servicio.id_servicio }),
             nivel_impacto: 'Baja',
             id_user: req.user.id_user
         }, { transaction: trans });

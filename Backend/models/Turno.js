@@ -33,6 +33,10 @@ const Turno = sequelize.define('Turno', {
             model: 'autos',
             key: 'id_auto'
         }
+    },
+    dvh:{  
+        type:DataTypes.STRING(255),
+        allowNull:false
     }
 }, { 
     tableName: 'turnos', 

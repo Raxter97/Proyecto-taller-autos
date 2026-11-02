@@ -21,6 +21,10 @@ const Repuesto = sequelize.define('Repuesto', {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true 
+    },
+    dvh:{  
+        type:DataTypes.STRING(255),
+        allowNull:false
     }
 }, {
     tableName: 'repuestos',

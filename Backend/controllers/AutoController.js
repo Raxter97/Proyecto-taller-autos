@@ -1,4 +1,5 @@
 const sequelize = require('../config/Database'); 
+const { Op } = require('sequelize');
 const Auto = require('../models/Auto');
 const Cliente = require('../models/Cliente');
 const Informe = require('../models/Informe');
@@ -13,13 +14,22 @@ const { registrarBitacora } = require('../services/BitacoraService');
 const crearAuto = async (req, res) => {
     const trans = await sequelize.transaction();
     try {
-        const { patente, marca, modelo, id_cliente } = req.body;
-        if (!patente || !marca || !modelo || !id_cliente) {
+        const { patente, marca, modelo, id } = req.body;
+        if (!patente || !marca || !modelo || !id) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Campos faltantes.' });
         }
 
-        const cliente = await Cliente.findByPk(id_cliente, { transaction: trans });
+        const cliente = await Cliente.findOne({ 
+            where: { 
+                [Op.or]: [
+                    { email: id },
+                    { telefono: id }
+                ]
+            }, 
+            transaction: trans 
+        });
+
         if (!cliente) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'El cliente no existe ' });
@@ -39,7 +49,7 @@ const crearAuto = async (req, res) => {
             patente: patente.toUpperCase(),
             marca,
             modelo,
-            id_cliente: Number(id_cliente),
+            id: Number(id),
             estado: true
         };
         const dvh = calcularDVH(datosDVH);
@@ -48,7 +58,7 @@ const crearAuto = async (req, res) => {
             patente: patente.toUpperCase(),
             marca,
             modelo,
-            id_cliente: Number(id_cliente),
+            id: Number(id),
             estado: true,
             dvh
         }, { transaction: trans });
@@ -178,6 +188,12 @@ const consultarHistorial = async (req, res) => {
 const consultarHistorialUser = async (req, res) => {
   try {
     const cliente = await Cliente.findOne({ where: { email: req.user.email } });
+    
+    //eliminar este if 
+    if (!cliente) {
+      cliente = await Cliente.findOne(); 
+    }
+
     if (!cliente) {
       return res.status(404).json({ mensaje: 'Perfil de cliente no encontrado.' });
     }

@@ -85,10 +85,10 @@ const agendarTurno = async (req, res) => {
 
         const estadoTurno = 'Agendado';
         const datosDVH = {
-            estado: estadoTurno,
             fecha_hora,
-            id_auto: Number(id_auto),
-            id_cliente: Number(id_cliente)
+            estado: estadoTurno,
+            id_cliente: Number(id_cliente),
+            id_auto: Number(id_auto)
         };
         const dvh = calcularDVH(datosDVH);
 
@@ -134,10 +134,10 @@ const reprogramarTurno = async (req, res) => {
         turno.estado = 'Confirmado';
 
         const datosDVH = {
-            estado: turno.estado,
-            fecha_hora: turno.fecha_hora,
-            id_auto: Number(turno.id_auto),
-            id_cliente: Number(turno.id_cliente)
+            fecha_hora,
+            estado: estadoTurno,
+            id_cliente: Number(id_cliente),
+            id_auto: Number(id_auto)
         };
         turno.dvh = calcularDVH(datosDVH);
         await turno.save({ transaction: trans });
@@ -171,12 +171,12 @@ const cancelarTurno = async (req, res) => {
 
         const estadoPrevio = turno.toJSON();
         turno.estado = 'Cancelado';
-
+        
         const datosDVH = {
-            estado: turno.estado,
-            fecha_hora: turno.fecha_hora,
-            id_auto: Number(turno.id_auto),
-            id_cliente: Number(turno.id_cliente)
+            fecha_hora,
+            estado: estadoTurno,
+            id_cliente: Number(id_cliente),
+            id_auto: Number(id_auto)
         };
         turno.dvh = calcularDVH(datosDVH);
         await turno.save({ transaction: trans });

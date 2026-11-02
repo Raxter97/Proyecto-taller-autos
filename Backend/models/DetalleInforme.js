@@ -19,6 +19,10 @@ const RepuestoUsado = sequelize.define('RepuestoUsado', {
     id_informe: {
         type: DataTypes.INTEGER,
         allowNull: false
+    },
+    dvh:{  
+        type:DataTypes.STRING(255),
+        allowNull:false
     }
 }, {
     tableName: 'repuestos_usados',
@@ -39,6 +43,10 @@ const ServicioRealizado = sequelize.define('ServicioRealizado', {
     id_servicio: {
         type: DataTypes.INTEGER,
         allowNull: false
+    },
+    dvh:{  
+        type:DataTypes.STRING(255),
+        allowNull:false
     }
 }, {
     tableName: 'servicios_realizados',

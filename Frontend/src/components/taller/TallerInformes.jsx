@@ -3,15 +3,14 @@ import { informesApi } from '../../api/informesApi';
 
 export default function TallerInformes() {
   const [informes, setInformes] = useState([]);
-  const [idAuto, setIdAuto] = useState('');
-  const [idEmpleado, setIdEmpleado] = useState('');
+  const [patente, setPatente] = useState('');
+  const [legajo, setLegajo] = useState('');
   const [descripcion, setDescripcion] = useState('');
 
-  // Estados para imputaciones y finalización
   const [idInformeSeleccionado, setIdInformeSeleccionado] = useState('');
-  const [idRepuesto, setIdRepuesto] = useState('');
+  const [descripcionRepuesto, setDescripcionRepuesto] = useState('');
   const [cantidadRepuesto, setCantidadRepuesto] = useState('');
-  const [idServicio, setIdServicio] = useState('');
+  const [descripcionServicio, setDescripcionServicio] = useState('');
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -35,13 +34,13 @@ export default function TallerInformes() {
     setSuccess('');
     try {
       await informesApi.crear({
-        id_auto: Number(idAuto),
-        id_empleado: Number(idEmpleado),
+        patente: patente.toUpperCase(),
+        legajo: Number(legajo),
         descripcion,
       });
       setSuccess('Informe técnico abierto con éxito y turno asociado marcado como "Atendido".');
-      setIdAuto('');
-      setIdEmpleado('');
+      setPatente('');
+      setLegajo('');
       setDescripcion('');
       cargarInformes();
     } catch (err) {
@@ -55,11 +54,11 @@ export default function TallerInformes() {
     setSuccess('');
     try {
       await informesApi.imputarRepuesto(idInformeSeleccionado, {
-        id_repuesto: Number(idRepuesto),
+        descripcionRepuesto,
         cantidad: Number(cantidadRepuesto),
       });
       setSuccess('Repuesto imputado correctamente al informe.');
-      setIdRepuesto('');
+      setDescripcionRepuesto('');
       setCantidadRepuesto('');
       cargarInformes();
     } catch (err) {
@@ -73,10 +72,10 @@ export default function TallerInformes() {
     setSuccess('');
     try {
       await informesApi.imputarServicio(idInformeSeleccionado, {
-        id_servicio: Number(idServicio),
+        descripcionServicio,
       });
       setSuccess('Servicio imputado correctamente al informe.');
-      setIdServicio('');
+      setDescripcionServicio('');
       cargarInformes();
     } catch (err) {
       setError(err.response?.data?.mensaje || err.message);
@@ -84,7 +83,7 @@ export default function TallerInformes() {
   };
 
   const handleFinalizarInforme = async (id_informe) => {
-    if (!window.confirm('¿Estás seguro de que deseas finalizar este informe técnico? Esta acción validará que tenga al menos un repuesto o servicio.')) {
+    if (!window.confirm('¿Estás seguro de que deseas finalizar este informe técnico?')) {
       return;
     }
     setError('');
@@ -105,16 +104,15 @@ export default function TallerInformes() {
       {success && <p style={{ color: 'green' }}>{success}</p>}
 
       <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '30px' }}>
-        {/* Formulario de Apertura */}
         <form onSubmit={handleCrearInforme} style={{ border: '1px solid #444', padding: '15px', flex: '1', minWidth: '300px', borderRadius: '5px' }}>
           <h3>Abrir Nuevo Informe</h3>
           <div style={{ marginTop: '10px' }}>
-            <label>ID del Vehículo (Auto):</label><br />
-            <input type="number" value={idAuto} onChange={(e) => setIdAuto(e.target.value)} placeholder="Ej: 1" required />
+            <label>Patente del Vehículo:</label><br />
+            <input type="text" value={patente} onChange={(e) => setPatente(e.target.value.toUpperCase())} placeholder="Ej: AB123CD" required />
           </div>
           <div style={{ marginTop: '10px' }}>
-            <label>ID del Empleado (Mecánico):</label><br />
-            <input type="number" value={idEmpleado} onChange={(e) => setIdEmpleado(e.target.value)} placeholder="Ej: 2" required />
+            <label>Legajo del Empleado:</label><br />
+            <input type="number" value={legajo} onChange={(e) => setLegajo(e.target.value)} placeholder="Ej: 1001" required />
           </div>
           <div style={{ marginTop: '10px' }}>
             <label>Descripción del Diagnóstico:</label><br />
@@ -123,7 +121,6 @@ export default function TallerInformes() {
           <button type="submit" style={{ marginTop: '15px' }}>Abrir Informe</button>
         </form>
 
-        {/* Sección de Imputaciones (Requiere ID de informe activo) */}
         <div style={{ border: '1px solid #444', padding: '15px', flex: '1', minWidth: '300px', borderRadius: '5px' }}>
           <h3>Imputar a Informe Activo</h3>
           <div style={{ marginTop: '10px' }}>
@@ -133,14 +130,14 @@ export default function TallerInformes() {
 
           <form onSubmit={handleImputarRepuesto} style={{ marginTop: '15px', borderTop: '1px dashed #555', paddingTop: '10px' }}>
             <h4>Imputar Repuesto</h4>
-            <input type="number" placeholder="ID Repuesto" value={idRepuesto} onChange={(e) => setIdRepuesto(e.target.value)} required style={{ width: '45%', marginRight: '5%' }} />
+            <input type="text" placeholder="Descripción Repuesto" value={descripcionRepuesto} onChange={(e) => setDescripcionRepuesto(e.target.value)} required style={{ width: '45%', marginRight: '5%' }} />
             <input type="number" placeholder="Cantidad" value={cantidadRepuesto} onChange={(e) => setCantidadRepuesto(e.target.value)} required style={{ width: '45%' }} />
             <button type="submit" style={{ marginTop: '10px' }}>Agregar Repuesto</button>
           </form>
 
           <form onSubmit={handleImputarServicio} style={{ marginTop: '15px', borderTop: '1px dashed #555', paddingTop: '10px' }}>
             <h4>Imputar Servicio</h4>
-            <input type="number" placeholder="ID Servicio" value={idServicio} onChange={(e) => setIdServicio(e.target.value)} required style={{ width: '60%', marginRight: '5%' }} />
+            <input type="text" placeholder="Descripción Servicio" value={descripcionServicio} onChange={(e) => setDescripcionServicio(e.target.value)} required style={{ width: '60%', marginRight: '5%' }} />
             <button type="submit" style={{ marginTop: '10px' }}>Agregar Servicio</button>
           </form>
         </div>
@@ -152,8 +149,8 @@ export default function TallerInformes() {
           <tr style={{ background: '#222' }}>
             <th>ID</th>
             <th>Fecha</th>
-            <th>Auto</th>
-            <th>Mecánico</th>
+            <th>Auto (Patente)</th>
+            <th>Mecánico (Legajo)</th>
             <th>Descripción</th>
             <th>Estado</th>
             <th>Acciones</th>
@@ -167,8 +164,8 @@ export default function TallerInformes() {
               <tr key={inf.id_informe || inf.id}>
                 <td>{inf.id_informe || inf.id}</td>
                 <td>{inf.fecha}</td>
-                <td>{inf.id_auto}</td>
-                <td>{inf.id_empleado}</td>
+                <td>{inf.auto?.patente || inf.id_auto}</td>
+                <td>{inf.empleado?.legajo || inf.id_empleado}</td>
                 <td>{inf.descripcion}</td>
                 <td style={{ color: inf.estado ? 'lightgreen' : 'orange' }}>
                   {inf.estado ? 'Finalizado' : 'En Proceso'}

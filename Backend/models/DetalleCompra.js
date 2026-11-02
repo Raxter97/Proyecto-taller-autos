@@ -30,6 +30,10 @@ const DetalleCompra = sequelize.define('DetalleCompra', {
         model: 'repuestos', 
             key: 'id_repuesto' 
         }
+    },
+    dvh:{  
+        type:DataTypes.STRING(255),
+        allowNull:false
     }
 }, {
     tableName: 'detalle_compra',

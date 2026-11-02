@@ -39,6 +39,10 @@ const Cliente = sequelize.define('Cliente',{
         allowNull:false,
         defaultValue: true
     },
+    dvh:{  
+        type:DataTypes.STRING(255),
+        allowNull:false
+    }
 },{
     tableName: "clientes",
     timestamps: false

@@ -17,7 +17,7 @@ export default function ClientesAutos() {
   const [autoPatente, setAutoPatente] = useState('');
   const [autoMarca, setAutoMarca] = useState('');
   const [autoModelo, setAutoModelo] = useState('');
-  const [autoIdCliente, setAutoIdCliente] = useState('');
+  const [autoEmailCliente, setAutoEmailCliente] = useState('');
 
   const [misAutos, setMisAutos] = useState([]);
 
@@ -33,7 +33,7 @@ export default function ClientesAutos() {
         const response = await autosApi.obtenerMisAutos();
         setMisAutos(response.data?.autos || response.autos || []);
       } catch (err) {
-      
+        // Silenciar si no aplica rol cliente
       }
     } catch (err) {
       setError(err.message);
@@ -64,13 +64,13 @@ export default function ClientesAutos() {
     setSuccess('');
     try {
       await autosApi.crear({ 
-        patente: autoPatente, 
+        patente: autoPatente.toUpperCase(), 
         marca: autoMarca, 
         modelo: autoModelo, 
-        id_cliente: Number(autoIdCliente) 
+        email: autoEmailCliente 
       });
       setSuccess('Vehículo registrado exitosamente.');
-      setAutoPatente(''); setAutoMarca(''); setAutoModelo(''); setAutoIdCliente('');
+      setAutoPatente(''); setAutoMarca(''); setAutoModelo(''); setAutoEmailCliente('');
       cargarDatos();
     } catch (err) {
       setError(err.message);
@@ -103,16 +103,16 @@ export default function ClientesAutos() {
           <div><input type="text" placeholder="Apellido" value={apellido} onChange={e => setApellido(e.target.value)} required /></div>
           <div><input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required /></div>
           <div><input type="text" placeholder="Teléfono" value={telefono} onChange={e => setTelefono(e.target.value)} required /></div>
-          <div><input type="text" placeholder="Dirección" value={direccion} onChange={e => setDireccion(e.target.value)} /></div>
+          <div><input type="text" placeholder="Dirección (opcional)" value={direccion} onChange={e => setDireccion(e.target.value)} /></div>
           <button type="submit" style={{ marginTop: '10px' }}>Guardar Cliente</button>
         </form>
 
         <form onSubmit={handleCrearAuto} style={{ border: '1px solid #444', padding: '15px', flex: '1' }}>
           <h3>Registrar Vehículo</h3>
-          <div><input type="text" placeholder="Patente (Ej: AB123CD)" value={autoPatente} onChange={e => setAutoPatente(e.target.value)} required /></div>
+          <div><input type="text" placeholder="Patente (Ej: AB123CD)" value={autoPatente} onChange={e => setAutoPatente(e.target.value.toUpperCase())} required /></div>
           <div><input type="text" placeholder="Marca" value={autoMarca} onChange={e => setAutoMarca(e.target.value)} required /></div>
           <div><input type="text" placeholder="Modelo" value={autoModelo} onChange={e => setAutoModelo(e.target.value)} required /></div>
-          <div><input type="number" placeholder="ID del Cliente Propietario" value={autoIdCliente} onChange={e => setAutoIdCliente(e.target.value)} required /></div>
+          <div><input type="email" placeholder="Email/Telefono del Propietario" value={autoEmailCliente} onChange={e => setAutoEmailCliente(e.target.value)} required /></div>
           <button type="submit" style={{ marginTop: '10px' }}>Vincular Vehículo</button>
         </form>
       </div>
@@ -121,7 +121,7 @@ export default function ClientesAutos() {
         <h3>Mis Vehículos Registrados</h3>
         <ul>
           {misAutos.length === 0 ? (
-            <p>No hay vehículos registrados para este usuario.</p>
+            <p>No hay vehículos registrados de este usuario.</p>
           ) : (
             misAutos.map((auto) => (
               <li key={auto.id_auto}>
