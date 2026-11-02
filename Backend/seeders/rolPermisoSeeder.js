@@ -58,32 +58,30 @@ const seedRolesYPermisos = async () => {
             permisosCreados.push(permiso);
         }
 
-        // 3. Asignar todos los permisos al rol Administrativo (Acceso C global)
+        
         const todosLosPermisos = await Permiso.findAll();
-        await admin.setPermisos(todosLosPermisos);
+        await admin.setPermisos(todosLosPermisos, { through: { dvh: 'dummy' } });
 
-        // 4. Asignar permisos al Recepcionista (C en M2, M3, M4)
         const permisosRecepcion = permisosCreados.filter(p => 
             ['CLIENTES_VEHICULOS_CRUD', 'AGENDA_TURNOS_CRUD', 'PARKING_CRUD'].includes(p.nombre_permiso)
         );
-        await recepcionista.setPermisos(permisosRecepcion);
+        await recepcionista.setPermisos(permisosRecepcion, { through: { dvh: 'dummy' } });
 
-        // 5. Asignar permisos al Mecánico (L en M2, M3, M4, C en M6, L en M7)
         const permisosMecanico = permisosCreados.filter(p => 
             ['CLIENTES_VEHICULOS_LECTURA', 'AGENDA_TURNOS_LECTURA', 'PARKING_LECTURA', 'TALLER_REPARACIONES_CRUD', 'INVENTARIO_COMPRAS_LECTURA'].includes(p.nombre_permiso)
         );
-        await mecanico.setPermisos(permisosMecanico);
+        await mecanico.setPermisos(permisosMecanico, { through: { dvh: 'dummy' } });
 
-        // 6. Asignar permisos al Encargado de Depósito (L en M6, C en M7
         const permisosEncargado = permisosCreados.filter(p => 
             ['TALLER_REPARACIONES_LECTURA', 'INVENTARIO_COMPRAS_CRUD'].includes(p.nombre_permiso)
         );
-        await encargado.setPermisos(permisosEncargado);
+        await encargado.setPermisos(permisosEncargado, { through: { dvh: 'dummy' } });
 
         const permisosCliente = permisosCreados.filter(p => 
             ['CLIENTES_VEHICULOS_LECTURA', 'AGENDA_TURNOS_LECTURA'].includes(p.nombre_permiso)
         );
-        await UsuarioRol.setPermisos(permisosCliente);
+        await UsuarioRol.setPermisos(permisosCliente, { through: { dvh: 'dummy' } });
+
         console.log('Seeder de Roles y Permisos sincronizado con la documentación oficial.');
     } catch (error) {
         console.error('Error al ejecutar el seeder:', error);

@@ -9,7 +9,7 @@ const axiosClient = axios.create({
   },
 });
 
-// Interceptor de solicitudes: Inyecta el token Bearer automáticamente si existe
+
 axiosClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -21,7 +21,7 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor de respuestas: Maneja errores globales y expiración de token
+
 axiosClient.interceptors.response.use(
   (response) => response.data, // Retorna directamente los datos del servidor
   (error) => {
@@ -29,7 +29,7 @@ axiosClient.interceptors.response.use(
       const { status } = error.response;
       if (status === 401 || status === 403) {
         localStorage.removeItem('token');
-        // window.location.href = '/login';
+        window.location.href = '/login';
       }
       const message = error.response.data?.mensaje || 'Error en la petición del servidor';
       return Promise.reject(new Error(message));

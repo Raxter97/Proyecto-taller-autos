@@ -59,7 +59,7 @@ const crearAuto = async (req, res) => {
             accion: 'INSERT_AUTO',
             descripcion: JSON.stringify({ auto: nuevoAuto }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -111,7 +111,7 @@ const modificarAuto = async (req, res) => {
             accion: 'UPDATE_AUTO',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: auto.toJSON() }),
             nivel_impacto: 'Baja',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -220,7 +220,7 @@ const desactivarAuto = async (req, res) => {
             accion: 'BAJA_LOGICA_AUTO',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: auto.toJSON() }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();

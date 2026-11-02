@@ -80,7 +80,7 @@ const crearInforme = async (req, res) => {
             accion: 'INSERT_INFORME',
             descripcion: JSON.stringify({ informe: nuevoInforme }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -150,7 +150,7 @@ const imputarRepuesto = async (req, res) => {
             accion: 'INSERT_REPUESTO_USADO',
             descripcion: JSON.stringify({ id_informe, id_repuesto, cantidad }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -186,7 +186,7 @@ const imputarServicio = async (req, res) => {
             accion: 'INSERT_SERVICIO_REALIZADO',
             descripcion: JSON.stringify({ id_informe, id_servicio }),
             nivel_impacto: 'Baja',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -239,7 +239,7 @@ const finalizarInforme = async (req, res) => {
             accion: 'FINALIZAR_INFORME',
             descripcion: JSON.stringify({ id_informe }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         res.status(200).json({ mensaje: 'Informe técnico finalizado correctamente', informe });

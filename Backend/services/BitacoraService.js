@@ -7,10 +7,10 @@ const  {actualizarDVV} = require('../utils/LogicaDvv');
  * @param {string} params.accion - Tipo de operación 
  * @param {string|Object} params.descripcion - Detalle o JSON con estado previo y posterior
  * @param {string} params.nivel_impacto 
- * @param {number} params.id_usuario - ID de la cuenta 
+ * @param {number} params.id_user - ID de la cuenta 
  */
 
-const registrarBitacora = async ({ accion, descripcion, nivel_impacto, id_usuario }, options = {}) => {
+const registrarBitacora = async ({ accion, descripcion, nivel_impacto, id_user }, options = {}) => {
     try {
         const fecha_hora = new Date();
         const descripcionJson = typeof descripcion === 'object' ? JSON.stringify(descripcion) : descripcion;
@@ -19,7 +19,7 @@ const registrarBitacora = async ({ accion, descripcion, nivel_impacto, id_usuari
             accion,
             descripcion: descripcionJson,
             fecha_hora: fecha_hora.toISOString(),
-            id_usuario,
+            id_user,
             nivel_impacto
         };
         
@@ -31,7 +31,7 @@ const registrarBitacora = async ({ accion, descripcion, nivel_impacto, id_usuari
             descripcion: descripcionJson,
             nivel_impacto,
             dvh,
-            id_usuario
+            id_user
         }, options);
 
         await actualizarDVV(Bitacora, 'bitacora', 'id_bitacora', options);

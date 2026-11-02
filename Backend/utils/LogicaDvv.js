@@ -66,7 +66,7 @@ const verificarDVVTabla = async (Model, nombreTabla, pkField = 'id_user', req = 
                         mensaje: 'Manipulación externa de datos detectada mediante verificación DVV'
                     }),
                     nivel_impacto: 'Crítica',
-                    id_usuario: req?.user?.id_user || null
+                    id_user: req?.user?.id_user || null
                 }, options);
             } catch (bitacoraError) {
                 console.error('Error al registrar bitácora crítica de DVV:', bitacoraError);

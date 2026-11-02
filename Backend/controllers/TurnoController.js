@@ -106,7 +106,7 @@ const agendarTurno = async (req, res) => {
             accion: 'INSERT_TURNO',
             descripcion: JSON.stringify({ Turno: nuevoTurno }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -148,7 +148,7 @@ const reprogramarTurno = async (req, res) => {
             accion: 'UPDATE_TURNO',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: turno.toJSON() }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -187,7 +187,7 @@ const cancelarTurno = async (req, res) => {
             accion: 'CANCEL_TURNO',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: turno.toJSON() }),
             nivel_impacto: 'Baja',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();

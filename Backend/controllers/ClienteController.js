@@ -81,7 +81,7 @@ const crearCliente = async (req, res) => {
             accion: 'INSERT_CLIENTE',
             descripcion: JSON.stringify({ cliente: nuevoCliente }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -136,7 +136,7 @@ const modificarCliente = async (req, res) => {
             accion: 'UPDATE_CLIENTE',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: cliente.toJSON() }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -233,7 +233,7 @@ const desactivarCliente = async (req, res) => {
             accion: 'BAJA_LOGICA_CLIENTE',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: cliente.toJSON() }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();

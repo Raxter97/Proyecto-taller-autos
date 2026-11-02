@@ -14,7 +14,6 @@ export default function Perfil({ onLogout, onNavegar }) {
   const [passwordNueva, setPasswordNueva] = useState('');
   const [passMsg, setPassMsg] = useState('');
 
-  // Nuevos estados para permisos y validación de empleado
   const [permisos, setPermisos] = useState([]);
   const [esEmpleado, setEsEmpleado] = useState(false);
 

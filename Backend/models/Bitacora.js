@@ -29,7 +29,7 @@ const Bitacora = sequelize.define('Bitacora',{
         type:DataTypes.STRING(255),
         allowNull:false
     },
-    id_usuario:{
+    id_user:{
         type:DataTypes.INTEGER,
         allowNull: false
     }

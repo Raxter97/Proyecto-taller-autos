@@ -26,7 +26,7 @@ const verificarToken = async (req,res, next)=>{
                 accion: 'ERROR_INTEGRIDAD_DVV_CRITICO',
                 descripcion: JSON.stringify({ error: dvvError.message, tabla: 'users' }),
                 nivel_impacto: 'Crítica',
-                id_usuario: decoded.id_user || 1
+                id_user: decoded.id_user || 1
             });
             return res.status(403).json({ mensaje: '[CRÍTICO] Alteración de datos detectada en el sistema. Sesión invalidada.' 
             });

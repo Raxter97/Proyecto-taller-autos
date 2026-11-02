@@ -4,7 +4,7 @@ const { verificarDVVTabla } = require('../utils/LogicaDvv');
 
 const consultarBitacora = async (req, res) => {
     try {
-        const { fechaInicio, fechaFin, id_usuario, nivel_impacto, accion } = req.query;
+        const { fechaInicio, fechaFin, id_user, nivel_impacto, accion } = req.query;
         
         try {
             await verificarDVVTabla(Bitacora, 'bitacora', 'id_bitacora');
@@ -22,8 +22,8 @@ const consultarBitacora = async (req, res) => {
                 new Date(fechaFin)] 
             };
         }
-        if (id_usuario){
-            where.id_usuario = id_usuario;
+        if (id_user){
+            where.id_user = id_user;
         } 
         if (nivel_impacto){
             where.nivel_impacto = nivel_impacto;

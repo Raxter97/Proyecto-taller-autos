@@ -68,7 +68,7 @@ const crearRepuesto = async (req, res) => {
             accion: 'INSERT_REPUESTO',
             descripcion: JSON.stringify({ repuesto_creado: nuevoRepuesto }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -112,7 +112,7 @@ const actualizarRepuesto = async (req, res) => {
             accion: 'UPDATE_REPUESTO',
             descripcion: JSON.stringify({ previo, posterior: repuesto.toJSON() }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -165,7 +165,7 @@ const bajaRepuesto = async (req, res) => {
             accion: 'DELETE_LOGICO_REPUESTO',
             descripcion: JSON.stringify({ previo, posterior: repuesto.toJSON() }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -247,7 +247,7 @@ const crearProveedor = async (req, res) => {
             accion: 'INSERT_PROVEEDOR',
             descripcion: JSON.stringify({ proveedor_creado: nuevoProveedor }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -317,7 +317,7 @@ const actualizarProveedor = async (req, res) => {
             accion: 'UPDATE_PROVEEDOR',
             descripcion: JSON.stringify({ previo, posterior: proveedor.toJSON() }),
             nivel_impacto: 'Baja',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -373,7 +373,7 @@ const bajaProveedor = async (req, res) => {
             accion: 'DELETE_LOGICO_PROVEEDOR',
             descripcion: JSON.stringify({ previo, posterior: proveedor.toJSON() }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -445,7 +445,7 @@ const registrarOrdenCompra = async (req, res) => {
             accion: 'INSERT_ORDEN_COMPRA',
             descripcion: JSON.stringify({ id_compra: nuevaCompra.id_compra, total, items }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -514,7 +514,7 @@ const confirmarRecepcionMercaderia = async (req, res) => {
             accion: 'RECEPCION_MERCADERIA',
             descripcion: JSON.stringify({ id_compra, estado: 'Recibida' }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();

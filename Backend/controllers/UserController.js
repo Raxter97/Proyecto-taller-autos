@@ -68,25 +68,25 @@ const registrarCuentaAdmin = async (req, res) => {
         for (const id_rol of rolesIds) {
             const datosDvhRol = {
                 id_rol: Number(id_rol),
-                id_usuario: nuevoUsuario.id_user
+                id_user: nuevoUsuario.id_user
             };
             const dvhRol = calcularDVH(datosDvhRol);
 
             await UserRol.create({
-                id_usuario: nuevoUsuario.id_user,
+                id_user: nuevoUsuario.id_user,
                 id_rol: Number(id_rol),
                 dvh: dvhRol
             }, { transaction: trans });
         }
 
         await actualizarDVV(User, 'users', 'id_user');
-        await actualizarDVV(UserRol, 'user_rol', 'id_usuario_rol');
+        await actualizarDVV(UserRol, 'user_rol', 'id_user_rol');
 
         await registrarBitacora({
             accion: 'ADMIN_REGISTRAR_CUENTA',
             descripcion: JSON.stringify({ id_user: nuevoUsuario.id_user, email, id_empleado, rolesIds }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -136,22 +136,22 @@ const modificarCuentaAdmin = async (req, res) => {
 
         if (rolesIds && Array.isArray(rolesIds)) {
             await UserRol.destroy({ 
-                where: { id_usuario: id }, 
+                where: { id_user: id }, 
                 transaction: trans 
             });
             for (const id_rol of rolesIds) {
                 const datosDvhRol = {
                     id_rol: Number(id_rol),
-                    id_usuario: Number(id)
+                    id_user: Number(id)
                 };
                 const dvhRol = calcularDVH(datosDvhRol);
                 await UserRol.create({
-                    id_usuario: Number(id),
+                    id_user: Number(id),
                     id_rol: Number(id_rol),
                     dvh: dvhRol
                 }, { transaction: trans });
             }
-            await actualizarDVV(UserRol, 'user_rol', 'id_usuario_rol', { transaction: trans });
+            await actualizarDVV(UserRol, 'user_rol', 'id_user_rol', { transaction: trans });
         }
 
         await actualizarDVV(User, 'users', 'id_user', { transaction: trans });
@@ -159,7 +159,7 @@ const modificarCuentaAdmin = async (req, res) => {
             accion: 'ADMIN_MODIFICAR_CUENTA',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: usuario.toJSON(), rolesIds }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -208,7 +208,7 @@ const desactivarCuentaAdmin = async (req, res) => {
             accion: 'ADMIN_BAJA_LOGICA_CUENTA',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: usuario.toJSON() }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();

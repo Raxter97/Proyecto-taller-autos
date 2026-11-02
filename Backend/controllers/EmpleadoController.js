@@ -86,7 +86,7 @@ const crearEmpleado = async (req, res) => {
             accion: 'INSERT_EMPLEADO',
             descripcion: JSON.stringify({ previo: null, posterior: nuevoEmpleado }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -151,7 +151,7 @@ const modificarEmpleado = async (req, res) => {
             accion: 'UPDATE_EMPLEADO',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: empleado.toJSON() }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -209,7 +209,7 @@ const desactivarEmpleado = async (req, res) => {
             accion: 'BAJA_LOGICA_EMPLEADO',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: empleado.toJSON() }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();

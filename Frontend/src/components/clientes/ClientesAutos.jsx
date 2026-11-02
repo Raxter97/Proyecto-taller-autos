@@ -33,7 +33,7 @@ export default function ClientesAutos() {
         const response = await autosApi.obtenerMisAutos();
         setMisAutos(response.data?.autos || response.autos || []);
       } catch (err) {
-        // Ignorar si el rol actual no es cliente o no requiere mis autos
+      
       }
     } catch (err) {
       setError(err.message);

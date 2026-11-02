@@ -93,7 +93,7 @@ const generarFactura = async (req, res) => {
             accion: 'INSERT_FACTURA',
             descripcion: JSON.stringify({ posterior: nuevaFactura }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -182,7 +182,7 @@ const registrarPago = async (req, res) => {
                 nro_cupon: nro_cupon || 'N/A'
             }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();

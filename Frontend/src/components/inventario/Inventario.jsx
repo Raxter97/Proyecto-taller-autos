@@ -24,7 +24,7 @@ export default function Inventario() {
 
   const cargarInventario = async (p = 1) => {
     try {
-      // Usamos el servicio modular con Axios pasando la página y límite
+     
       const dataRep = await inventarioApi.obtenerRepuestos(p, 10);
       setRepuestos(dataRep.repuestos || []);
       setTotalPagesRep(dataRep.totalPages || 1);

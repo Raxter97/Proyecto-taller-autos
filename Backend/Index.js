@@ -2,6 +2,8 @@ const app = require('./App');
 const sequelize = require('./config/Database');
 const PORT = process.env.PORT || 5000;
 
+const seedRolesYPermisos = require('./seeders/rolPermisoSeeder'); 
+
 require('./models/User.models');
 require('./models/Cliente');
 require('./models/Empleado');
@@ -23,11 +25,11 @@ require('./models/DetalleInforme');
 require('./models/CompraRepuesto'); 
 require('./models/DetalleCompra'); 
 
-const { 
-  User, Permiso, Parking, Servicio, Repuesto, Rol, 
-  ServicioRealizado, RepuestoUsado, Bitacora, Cliente, 
-  Empleado, Auto, Turno, CompraRepuesto, DetalleCompra, 
-  Proveedor, Informe, Factura 
+const {  
+  User, Permiso, Parking, Servicio, Repuesto, Rol,  
+  ServicioRealizado, RepuestoUsado, Bitacora, Cliente,  
+  Empleado, Auto, Turno, CompraRepuesto, DetalleCompra,  
+  Proveedor, Informe, Factura, UserRol, RolPermiso 
 } = sequelize.models;
 
 Auto.belongsTo(Cliente, { foreignKey: 'id_cliente', as: 'cliente' });
@@ -35,7 +37,7 @@ Auto.hasMany(Informe, { foreignKey: 'id_auto', as: 'informes' });
 Auto.hasMany(Turno, { foreignKey: 'id_auto', as: 'turnos' });
 Auto.hasOne(Parking, { foreignKey: 'id_auto', as: 'parking' });
 
-Bitacora.belongsTo(User, { foreignKey: 'id_usuario', as: 'usuario' });
+Bitacora.belongsTo(User, { foreignKey: 'id_user', as: 'usuario' });
 
 Cliente.hasMany(Auto, { foreignKey: 'id_cliente', as: 'autos' });
 Cliente.hasMany(Turno, { foreignKey: 'id_cliente', as: 'turnos' });
@@ -65,7 +67,8 @@ Informe.hasMany(ServicioRealizado, { foreignKey: 'id_informe', as: 'serviciosRea
 
 Parking.belongsTo(Auto, { foreignKey: 'id_auto', as: 'auto' });
 
-Permiso.belongsToMany(Rol, { through: 'rol_permiso', foreignKey: 'id_permiso', otherKey: 'id_rol', as: 'roles' });
+
+Permiso.belongsToMany(Rol, { through: RolPermiso, foreignKey: 'id_permiso', otherKey: 'id_rol', as: 'roles' });
 
 Proveedor.hasMany(CompraRepuesto, { foreignKey: 'id_proveedor', as: 'compras' });
 
@@ -74,23 +77,27 @@ Repuesto.hasMany(DetalleCompra, { foreignKey: 'id_repuesto', as: 'detallesCompra
 
 Servicio.hasMany(ServicioRealizado, { foreignKey: 'id_servicio', as: 'serviciosRealizados' });
 
-Rol.belongsToMany(User, { through: 'user_rol', foreignKey: 'id_rol', otherKey: 'id_user', as: 'usuarios' });
-Rol.belongsToMany(Permiso, { through: 'rol_permiso', foreignKey: 'id_rol', otherKey: 'id_permiso', as: 'permisos' });
+
+Rol.belongsToMany(User, { through: UserRol, foreignKey: 'id_rol', otherKey: 'id_user', as: 'usuarios' });
+Rol.belongsToMany(Permiso, { through: RolPermiso, foreignKey: 'id_rol', otherKey: 'id_permiso', as: 'permisos' });
 
 Turno.belongsTo(Cliente, { foreignKey: 'id_cliente', as: 'cliente' });
 Turno.belongsTo(Auto, { foreignKey: 'id_auto', as: 'auto' });
 
 User.belongsTo(Empleado, { foreignKey: 'id_empleado', as: 'empleado' });
-User.belongsToMany(Rol, { through: 'user_rol', foreignKey: 'id_user', otherKey: 'id_rol', as: 'roles' });
+
+User.belongsToMany(Rol, { through: UserRol, foreignKey: 'id_user', otherKey: 'id_rol', as: 'roles' });
 
 async function main() {
   try {
     await sequelize.authenticate();
     console.log('Conexión a la base de datos establecida.');
 
-    await sequelize.sync({ force: false });
+    await sequelize.sync({ force: true }); 
     console.log('Sincronización de modelos completada.');
-    
+
+    await seedRolesYPermisos(); 
+
     app.listen(PORT, () => {
       console.log(`Servidor escuchando en http://localhost:${PORT}`);
     });

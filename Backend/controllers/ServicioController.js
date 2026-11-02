@@ -58,7 +58,7 @@ const crearServicio = async (req, res) => {
             accion: 'INSERT_SERVICIO',
             descripcion: JSON.stringify({ servicio: nuevoServicio }),
             nivel_impacto: 'Baja',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -107,7 +107,7 @@ const modificarServicio = async (req, res) => {
             accion: 'UPDATE_SERVICIO',
             descripcion: JSON.stringify({ previo, posterior: servicio.toJSON() }),
             nivel_impacto: 'Baja',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         },{ transaction: trans });
 
         await trans.commit();
@@ -145,7 +145,7 @@ const desactivarServicio = async (req, res) => {
             accion: 'BAJA_LOGICA_SERVICIO',
             descripcion: JSON.stringify({ previo: estadoPrevio, posterior: servicio.toJSON() }),
             nivel_impacto: 'Alta',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();

@@ -12,7 +12,6 @@ const { verificarPermiso } = require('../middlewares/RBACMiddleware');
 router.use(verificarToken);
 
 router.get('/', verificarPermiso('TALLER_REPARACIONES_CRUD'), obtenerServicios);
-// router.get('/:id', verificarPermiso('TALLER_REPARACIONES_CRUD'), obtenerServicioPorId); talvez
 
 router.post('/', verificarPermiso('TALLER_REPARACIONES_CRUD'), crearServicio);
 router.put('/:id', verificarPermiso('TALLER_REPARACIONES_CRUD'), modificarServicio);

@@ -1,6 +1,7 @@
 const User = require("../models/User.models");
 const Rol = require('../models/Rol');
 const Permiso = require('../models/Permiso');
+const UserRol = require('../models/UserRol');
 const {comparePassword, hashPassword} = require('../utils/Encriptacion');
 const {calcularDVH} = require('../utils/CalculosDv');
 const {actualizarDVV, verificarDVVTabla} = require('../utils/LogicaDvv');
@@ -27,7 +28,6 @@ const login = async(req, res) => {
             return res.status(401).json({ mensaje: 'Datos inválidos' });
         }
 
-        // Verificación de integridad global DVV de la tabla (Protocolo ante Discrepancia CU-SAU-01)
         try {
             await verificarDVVTabla(User, 'users', 'id_user', req, { transaction: trans });
         } catch (dvvError) {
@@ -78,10 +78,7 @@ const login = async(req, res) => {
             return res.status(401).json({ mensaje: 'Datos inválidos' });
         }
 
-        user.intentos_fallidos = 0;
-        user.bloqueado_hasta = null;
-        
-        const datosDVH = {
+        const datosDVHActual = {
             email: user.email,
             password_hash: user.password_hash,
             estado: Boolean(user.estado),
@@ -89,11 +86,24 @@ const login = async(req, res) => {
             intentos_fallidos: user.intentos_fallidos,
             bloqueado_hasta: user.bloqueado_hasta
         };
-        const nuevohash = calcularDVH(datosDVH);
-        if (user.dvh != nuevohash) {
+        const hashActual = calcularDVH(datosDVHActual);
+        if (user.dvh != hashActual) {
             await trans.rollback();
             return res.status(403).json({ mensaje: 'Error de integridad en la cuenta.' });
         }
+
+        user.intentos_fallidos = 0;
+        user.bloqueado_hasta = null;
+        
+        const datosDVHNuevo = {
+            email: user.email,
+            password_hash: user.password_hash,
+            estado: Boolean(user.estado),
+            id_empleado: user.id_empleado || null,
+            intentos_fallidos: 0,
+            bloqueado_hasta: null
+        };
+        const nuevohash = calcularDVH(datosDVHNuevo);
 
         user.dvh = nuevohash;
         await user.save({ transaction: trans });
@@ -124,19 +134,29 @@ const login = async(req, res) => {
 const registro = async(req, res) => {
     const trans = await sequelize.transaction();
     try {
-        const {email, password} = req.body; 
+        const {email, password} = req.body;  
         if (!email || !password) {  
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Todos los campos son obligatorios' });
         }
         
-        const userExistente = await User.findOne({ 
+        const userExistente = await User.findOne({  
             where: { email },
-            transaction: trans 
+            transaction: trans  
         });
         if (userExistente) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'El email ya está registrado' });
+        }
+
+        const rolCliente = await Rol.findOne({  
+            where: { nombre_rol: 'Usuario' },  
+            transaction: trans  
+        });
+        
+        if (!rolCliente) {
+            await trans.rollback();
+            return res.status(500).json({ mensaje: 'Error de configuración: El rol por defecto no existe.' });
         }
 
         const password_hash = await hashPassword(password);
@@ -159,16 +179,22 @@ const registro = async(req, res) => {
             id_empleado: null
         }, { transaction: trans });
         
-        const rolCliente = await Rol.findOne({ 
-            where: { nombre_rol: 'Usuario' }, 
-            transaction: trans 
-        });
         
-            if (rolCliente) {
-            await newUser.addRol(rolCliente, { transaction: trans }); 
-        }
-        
+        const datosDvhRol = {
+            id_rol: Number(rolCliente.id_rol),
+            id_user: Number(newUser.id_user) 
+        };
+        const dvhRol = calcularDVH(datosDvhRol);
+
+        await UserRol.create({
+            id_user: Number(newUser.id_user),
+            id_rol: Number(rolCliente.id_rol),
+            dvh: dvhRol 
+        }, { transaction: trans });
+
         await actualizarDVV(User, 'users', 'id_user', { transaction: trans });
+        await actualizarDVV(UserRol, 'user_rol', 'id_user', { transaction: trans }); 
+
         try {
             await registrarBitacora({
                 accion: 'REGISTRO_EXITOSO',
@@ -176,12 +202,14 @@ const registro = async(req, res) => {
                 nivel_impacto: 'Baja',
                 id_usuario: newUser.id_user
             }, { transaction: trans });
+
         } catch (bitacoraError) {
             console.error("Aviso: Falla en bitácora durante registro:", bitacoraError.message);
         }
 
         await trans.commit();
-        res.status(201).json({mensaje: 'Usuario registrado exitosamente',
+        res.status(201).json({
+            mensaje: 'Usuario registrado exitosamente',
             user: {
                 id_user: newUser.id_user,
                 email: newUser.email,
@@ -189,12 +217,12 @@ const registro = async(req, res) => {
             }
         });
     } catch (error) {
-        console.error("--- ERROR CRÍTICO EN REGISTRO ---", error); // Impresión directa obligatoria
+        console.error("--- ERROR CRÍTICO EN REGISTRO ---", error); 
         await trans.rollback();
         if (error.name === 'SequelizeUniqueConstraintError') {
-            return res.status(400).json({ 
-                mensaje: 'El registro ya existe o viola una restricción única.', 
-                campo: error.errors[0]?.path 
+            return res.status(400).json({  
+                mensaje: 'El registro ya existe o viola una restricción única.',  
+                campo: error.errors[0]?.path  
             });
         }
         return res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });

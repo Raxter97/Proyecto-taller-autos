@@ -2,12 +2,6 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
 
 const UserRol = sequelize.define('UserRol', {
-    id_usuario_rol: { 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        autoIncrement: true, 
-        allowNull: false 
-    },
     dvh: { 
         type: DataTypes.STRING(255), 
         allowNull: false 
@@ -18,11 +12,13 @@ const UserRol = sequelize.define('UserRol', {
         defaultValue: DataTypes.NOW 
     },
     id_rol: { 
-        type: DataTypes.INTEGER, 
+        type: DataTypes.INTEGER,
+        primaryKey: true, 
         allowNull: false 
     },
-    id_usuario: { 
+    id_user: { 
         type: DataTypes.INTEGER, 
+        primaryKey: true,
         allowNull: false 
     }
 }, { 

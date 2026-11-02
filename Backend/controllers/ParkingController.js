@@ -76,7 +76,7 @@ const registrarIngreso = async (req, res) => {
             accion: 'INGRESO_PARKING',
             descripcion: JSON.stringify({ nro_lugar, id_auto: auto.id_auto, patente }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
@@ -145,7 +145,7 @@ const registrarSalida = async (req, res) => {
             accion: 'SALIDA_PARKING',
             descripcion: JSON.stringify({ nro_lugar, id_auto_previo: autoIdPrevio }),
             nivel_impacto: 'Media',
-            id_usuario: req.user.id_user
+            id_user: req.user.id_user
         }, { transaction: trans });
 
         await trans.commit();
