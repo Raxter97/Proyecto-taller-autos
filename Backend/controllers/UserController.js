@@ -11,32 +11,33 @@ const sequelize = require('../config/Database');
 const registrarCuentaAdmin = async (req, res) => {
     const trans = await sequelize.transaction();
     try {
-        const { email, password, id_empleado, rolesIds } = req.body;
-        if (!email || !password || !id_empleado || !rolesIds || !rolesIds.length) {
+        const { email, password, legajo, rolesIds } = req.body;
+        if (!email || !password || !legajo || !rolesIds || !rolesIds.length) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Email, contraseña, empleado y al menos un rol son obligatorios.' });
         }
 
-        const empleado = await Empleado.findByPk(
-            id_empleado, { transaction: trans }
-        );
+        const empleado = await Empleado.findOne({
+            where: { legajo }, 
+            transaction: trans 
+        });
         if (!empleado) {
             await trans.rollback();
-            return res.status(400).json({ mensaje: 'Empleado no encontrado.' });
+            return res.status(400).json({ mensaje: 'Usuario no encontrado.' });
         }
 
         if (!empleado.estado) {
             await trans.rollback();
-            return res.status(400).json({ mensaje: 'Empleado inactivo.' });
+            return res.status(400).json({ mensaje: 'Usuario inactivo.' });
         }
 
         const cuentaExistente = await User.findOne({ 
-            where: { id_empleado }, 
+            where: { id_empleado: empleado.id_empleado }, 
             transaction: trans 
         });
         if (cuentaExistente) {
             await trans.rollback();
-            return res.status(400).json({ mensaje: 'El empleado ya posee una cuenta de usuario asociada.' });
+            return res.status(400).json({ mensaje: 'El usuario ya tiene una cuenta asociada.' });
         }
 
         const emailExistente = await User.findOne({ 
@@ -45,7 +46,7 @@ const registrarCuentaAdmin = async (req, res) => {
         });
         if (emailExistente) {
             await trans.rollback();
-            return res.status(400).json({ mensaje: 'El correo electrónico ya está registrado.' });
+            return res.status(400).json({ mensaje: 'El Email ya está registrado.' });
         }
 
         const password_hash = await hashPassword(password);
@@ -53,7 +54,7 @@ const registrarCuentaAdmin = async (req, res) => {
             email,
             password_hash,
             estado: true,
-            id_empleado: Number(id_empleado)
+            id_empleado: Number(empleado.id_empleado)
         };
         const dvh = calcularDVH(datosDVH);
 
@@ -61,7 +62,7 @@ const registrarCuentaAdmin = async (req, res) => {
             email,
             password_hash,
             estado: true,
-            id_empleado: Number(id_empleado),
+            id_empleado: Number(empleado.id_empleado),
             dvh
         }, { transaction: trans });
 
@@ -79,12 +80,12 @@ const registrarCuentaAdmin = async (req, res) => {
             }, { transaction: trans });
         }
 
-        await actualizarDVV(User, 'users', 'id_user');
-        await actualizarDVV(UserRol, 'user_rol', 'id_user_rol');
+        await actualizarDVV(User, 'users', 'id_user', { transaction: trans });
+        await actualizarDVV(UserRol, 'user_rol', 'id_user_rol', { transaction: trans });
 
         await registrarBitacora({
             accion: 'ADMIN_REGISTRAR_CUENTA',
-            descripcion: JSON.stringify({ id_user: nuevoUsuario.id_user, email, id_empleado, rolesIds }),
+            descripcion: JSON.stringify({ id_user: nuevoUsuario.id_user, email, legajo, rolesIds }),
             nivel_impacto: 'Alta',
             id_user: req.user.id_user
         }, { transaction: trans });
@@ -176,6 +177,57 @@ const modificarCuentaAdmin = async (req, res) => {
     }
 };
 
+const actualizarRolesPorEmail = async (req, res) => {
+    const trans = await sequelize.transaction();
+    try {
+        const { email, rolesIds } = req.body;
+        if (!email || !rolesIds || !Array.isArray(rolesIds)) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'Email y rol son requeridos.' });
+        }
+
+        const usuario = await User.findOne({ 
+            where: { email }, transaction: trans 
+        });
+        if (!usuario) {
+            await trans.rollback();
+            return res.status(404).json({ mensaje: 'Usuario no encontrado con ese email.' });
+        }
+
+        await UserRol.destroy({ 
+            where: { id_user: usuario.id_user }, transaction: trans 
+        });
+
+        // Crear los nuevos roles 
+        for (const id_rol of rolesIds) {
+            const datosDvhRol = {
+                id_rol: Number(id_rol),
+                id_user: usuario.id_user
+            };
+            const dvhRol = calcularDVH(datosDvhRol);
+            await UserRol.create({
+                id_user: usuario.id_user,
+                id_rol: Number(id_rol),
+                dvh: dvhRol
+            }, { transaction: trans });
+        }
+
+        await actualizarDVV(UserRol, 'user_rol', 'id_user', { transaction: trans });
+        await registrarBitacora({
+            accion: 'ADMIN_MODIFICAR_ROLES_EMAIL',
+            descripcion: JSON.stringify({ email, rolesIds }),
+            nivel_impacto: 'Alta',
+            id_user: req.user.id_user
+        }, { transaction: trans });
+
+        await trans.commit();
+        res.status(200).json({ mensaje: 'Roles actualizados correctamente.' });
+    } catch (error) {
+        await trans.rollback();
+        res.status(500).json({ mensaje: 'Error al actualizar roles por email', error: error.message });
+    }
+};
+
 const desactivarCuentaAdmin = async (req, res) => {
     const trans = await sequelize.transaction();
     try {
@@ -185,7 +237,7 @@ const desactivarCuentaAdmin = async (req, res) => {
             return res.status(400).json({ mensaje: 'No puedes desactivar tu propia cuenta activa.' });
         }
 
-        const usuario = await User.findByPk(id);
+        const usuario = await User.findByPk(id, { transaction: trans });
         if (!usuario) {
             await trans.rollback();
             return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
@@ -219,6 +271,56 @@ const desactivarCuentaAdmin = async (req, res) => {
     }
 };
 
+const activarCuentaAdmin = async (req, res) => {
+    const trans = await sequelize.transaction();
+    try {
+        const { id } = req.params;
+
+        if (Number(id) === req.user.id_user) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'No puedes activar tu propia cuenta activa.' });
+        }
+
+        const usuario = await User.findByPk(id, { transaction: trans });
+
+        if (!usuario) {
+            await trans.rollback();
+            return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+        }
+
+        if (usuario.estado){
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'No puedes activar una cuenta activa.' });
+        } 
+
+        const estadoPrevio = usuario.toJSON();
+        usuario.estado = true;
+
+        const datosDVH = {
+            email: usuario.email,
+            password_hash: usuario.password_hash,
+            estado: true,
+            id_empleado: usuario.id_empleado
+        };
+        usuario.dvh = calcularDVH(datosDVH);
+        await usuario.save({ transaction: trans });
+
+        await actualizarDVV(User, 'users', 'id_user', { transaction: trans });
+        await registrarBitacora({
+            accion: 'ADMIN_ALTA_LOGICA_CUENTA',
+            descripcion: JSON.stringify({ previo: estadoPrevio, posterior: usuario.toJSON() }),
+            nivel_impacto: 'Alta',
+            id_user: req.user.id_user
+        }, { transaction: trans });
+
+        await trans.commit();
+        res.status(200).json({ mensaje: 'Cuenta activada correctamente.' });
+    } catch (error) {
+        await trans.rollback();
+        res.status(500).json({ mensaje: 'Error al activar cuenta', error: error.message });
+    }
+};
+
 const listarUsuarios = async (_req, res) => {
     try {
         const usuarios = await User.findAll({
@@ -234,6 +336,8 @@ const listarUsuarios = async (_req, res) => {
 module.exports = {
     registrarCuentaAdmin,
     modificarCuentaAdmin,
+    actualizarRolesPorEmail, 
     desactivarCuentaAdmin,
+    activarCuentaAdmin,
     listarUsuarios
 };

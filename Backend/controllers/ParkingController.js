@@ -17,7 +17,7 @@ const consultarParking = async (req, res) => {
         const plazas = await Parking.findAll({
             limit,
             offset,
-            include: [{ model: Auto, required: false }],
+            include: [{ model: Auto, as: 'auto', required: false }],
             order: [['nro_lugar', 'ASC']]
         });
         
@@ -33,11 +33,13 @@ const registrarIngreso = async (req, res) => {
         const { nro_lugar, patente } = req.body;
         if (!nro_lugar || !patente) {
             await trans.rollback();
-            return res.status(400).json({ mensaje: 'Número de parking y patente requeridos.' });
+            return res.status(400).json({ mensaje: 'Número de Plaza y patente requeridos.' });
         }
 
+        const patenteMayus = patente.toUpperCase().trim(); // para evitar posibles errores
+
         const auto = await Auto.findOne({ 
-            where: { patente },
+            where: { patente: patenteMayus },
             transaction: trans
         });
         if (!auto) {
@@ -51,12 +53,12 @@ const registrarIngreso = async (req, res) => {
         });
         if (!plaza) {
             await trans.rollback();
-            return res.status(404).json({ mensaje: 'Plaza de parking no encontrada.' });
+            return res.status(404).json({ mensaje: 'Plaza no encontrada.' });
         }
 
         if (plaza.estado) {
             await trans.rollback();
-            return res.status(400).json({ mensaje: 'La plaza de parking ya se encuentra ocupada.' });
+            return res.status(400).json({ mensaje: 'La plaza esta ocupada.' });
         }
 
         plaza.estado = true;
@@ -69,9 +71,8 @@ const registrarIngreso = async (req, res) => {
         };
         plaza.dvh = calcularDVH(datosDVH);
         await plaza.save({ transaction: trans });
-
-        await actualizarDVV(Parking, 'parking', 'nro_lugar', 'id_parking', { transaction: trans });
-
+        
+        await actualizarDVV(Parking, 'parking', 'nro_lugar', { transaction: trans });
         await registrarBitacora({
             accion: 'INGRESO_PARKING',
             descripcion: JSON.stringify({ nro_lugar, id_auto: auto.id_auto, patente }),
@@ -139,8 +140,7 @@ const registrarSalida = async (req, res) => {
         plaza.dvh = calcularDVH(datosDVH);
         await plaza.save({ transaction: trans });
 
-         await actualizarDVV(Parking, 'parking', 'nro_lugar', 'id_parking', { transaction: trans });
-        
+        await actualizarDVV(Parking, 'parking', 'nro_lugar', { transaction: trans });
         await registrarBitacora({
             accion: 'SALIDA_PARKING',
             descripcion: JSON.stringify({ nro_lugar, id_auto_previo: autoIdPrevio }),

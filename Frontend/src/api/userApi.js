@@ -5,4 +5,6 @@ export const userApi = {
   registrarCuenta: (data) => axiosClient.post('/user', data),
   modificarCuenta: (id, data) => axiosClient.put(`/user/${id}`, data),
   desactivarCuenta: (id) => axiosClient.delete(`/user/${id}`),
+  activarCuenta: (id) => axiosClient.put(`/user/${id}/activar`),
+  actualizarRolesCuenta: (data) => axiosClient.put('/user/roles', data), 
 };

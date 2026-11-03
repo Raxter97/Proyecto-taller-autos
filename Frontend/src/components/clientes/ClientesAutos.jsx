@@ -112,7 +112,7 @@ export default function ClientesAutos() {
           <div><input type="text" placeholder="Patente (Ej: AB123CD)" value={autoPatente} onChange={e => setAutoPatente(e.target.value.toUpperCase())} required /></div>
           <div><input type="text" placeholder="Marca" value={autoMarca} onChange={e => setAutoMarca(e.target.value)} required /></div>
           <div><input type="text" placeholder="Modelo" value={autoModelo} onChange={e => setAutoModelo(e.target.value)} required /></div>
-          <div><input type="email" placeholder="Email/Telefono del Propietario" value={autoEmailCliente} onChange={e => setAutoEmailCliente(e.target.value)} required /></div>
+          <div><input type="email" placeholder="Email del Propietario" value={autoEmailCliente} onChange={e => setAutoEmailCliente(e.target.value)} required /></div>
           <button type="submit" style={{ marginTop: '10px' }}>Vincular Vehículo</button>
         </form>
       </div>

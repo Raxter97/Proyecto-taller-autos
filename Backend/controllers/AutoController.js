@@ -1,5 +1,4 @@
 const sequelize = require('../config/Database'); 
-const { Op } = require('sequelize');
 const Auto = require('../models/Auto');
 const Cliente = require('../models/Cliente');
 const Informe = require('../models/Informe');
@@ -14,19 +13,14 @@ const { registrarBitacora } = require('../services/BitacoraService');
 const crearAuto = async (req, res) => {
     const trans = await sequelize.transaction();
     try {
-        const { patente, marca, modelo, id } = req.body;
-        if (!patente || !marca || !modelo || !id) {
+        const { patente, marca, modelo, email } = req.body;
+        if (!patente || !marca || !modelo || !email) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Campos faltantes.' });
         }
 
         const cliente = await Cliente.findOne({ 
-            where: { 
-                [Op.or]: [
-                    { email: id },
-                    { telefono: id }
-                ]
-            }, 
+            where: { email }, 
             transaction: trans 
         });
 
@@ -39,17 +33,19 @@ const crearAuto = async (req, res) => {
             return res.status(400).json({ mensaje: 'El cliente se encuentra inactivo' });
         }
 
-        const autoExistente = await Auto.findOne({ where: { patente }, transaction: trans });
+        const autoExistente = await Auto.findOne({ 
+            where: { patente }, transaction: trans 
+        });
         if (autoExistente) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'La patente ya está registrada.' });
         }
 
         const datosDVH = {
-            patente: patente.toUpperCase(),
+            patente: patente.toUpperCase().trim(),
             marca,
             modelo,
-            id: Number(id),
+            id_cliente: Number(cliente.id_cliente),
             estado: true
         };
         const dvh = calcularDVH(datosDVH);
@@ -58,7 +54,7 @@ const crearAuto = async (req, res) => {
             patente: patente.toUpperCase(),
             marca,
             modelo,
-            id: Number(id),
+            id_cliente: Number(cliente.id_cliente),
             estado: true,
             dvh
         }, { transaction: trans });
@@ -76,6 +72,7 @@ const crearAuto = async (req, res) => {
         res.status(201).json({ mensaje: 'Vehículo registrado exitosamente'});
     } catch (error) {
         await trans.rollback();
+        console.error("❌ ERROR DETALLADO EN CREAR AUTO:", error); //quitar
         if (error.name === 'SequelizeUniqueConstraintError') {
             return res.status(400).json({ 
                 mensaje: 'El registro ya existe o viola una restricción única.', 
@@ -187,12 +184,10 @@ const consultarHistorial = async (req, res) => {
 
 const consultarHistorialUser = async (req, res) => {
   try {
-    const cliente = await Cliente.findOne({ where: { email: req.user.email } });
-    
-    //eliminar este if 
-    if (!cliente) {
-      cliente = await Cliente.findOne(); 
-    }
+
+    const cliente = await Cliente.findOne({ 
+        where: { email: req.user.email } 
+    });
 
     if (!cliente) {
       return res.status(404).json({ mensaje: 'Perfil de cliente no encontrado.' });

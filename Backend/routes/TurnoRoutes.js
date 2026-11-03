@@ -12,6 +12,4 @@ router.post('/', verificarPermiso('AGENDA_TURNOS_CRUD'), agendarTurno);
 router.put('/:id', verificarPermiso('AGENDA_TURNOS_CRUD'), reprogramarTurno);
 router.put('/:id/cancelar', verificarPermiso('AGENDA_TURNOS_CRUD'), cancelarTurno);
 
-
-
 module.exports = router;

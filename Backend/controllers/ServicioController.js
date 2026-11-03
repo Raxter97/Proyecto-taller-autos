@@ -76,7 +76,8 @@ const modificarServicio = async (req, res) => {
         const { id } = req.params;
         const { descripcion, precio, estado } = req.body;
 
-        const servicio = await Servicio.findByPk(id);
+        const servicio = await Servicio.findByPk(id, { transaction: trans });
+        
         if (!servicio){
             await trans.rollback();
             return res.status(404).json({ mensaje: 'Servicio no encontrado.' });

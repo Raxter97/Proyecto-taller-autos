@@ -87,7 +87,7 @@ export default function Factura() {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h2>Facturación y Cobranzas</h2>
+      <h2>Facturas y Cobros </h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {success && <p style={{ color: 'green' }}>{success}</p>}
 
@@ -139,7 +139,7 @@ export default function Factura() {
 
       {/* Sección de Consultas y Filtros */}
       <div style={{ marginTop: '30px', borderTop: '1px solid #444', paddingTop: '20px' }}>
-        <h3>Consultas de Facturación</h3>
+        <h3>Consultas de Facturas</h3>
         <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', flexWrap: 'wrap' }}>
           <form onSubmit={handleBuscarPorAuto}>
             <input type="number" placeholder="ID de Auto" value={idAutoFiltro} onChange={e => setIdAutoFiltro(e.target.value)} required />

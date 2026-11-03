@@ -7,9 +7,11 @@ export default function Turnos() {
   const [success, setSuccess] = useState('');
   const [filtroMisTurnos, setFiltroMisTurnos] = useState(false);
 
+  // 👈 Estados añadidos para el formulario de agendar turno
+  const [nombreCliente, setNombreCliente] = useState('');
+  const [emailCliente, setEmailCliente] = useState('');
+  const [patenteAuto, setPatenteAuto] = useState('');
   const [fechaHora, setFechaHora] = useState('');
-  const [idCliente, setIdCliente] = useState('');
-  const [idAuto, setIdAuto] = useState('');
 
   const cargarTurnos = async () => {
     try {
@@ -33,18 +35,22 @@ export default function Turnos() {
     setSuccess('');
 
     try {
+      // 👈 Enviamos los campos que espera el backend actualizado (nombre, email, patente, fecha_hora)
       await turnosApi.agendar({
+        nombre: nombreCliente,
+        email: emailCliente,
+        patente: patenteAuto.toUpperCase(),
         fecha_hora: fechaHora,
-        id_cliente: Number(idCliente),
-        id_auto: Number(idAuto),
       });
+      
       setSuccess('Turno agendado exitosamente.');
+      setNombreCliente('');
+      setEmailCliente('');
+      setPatenteAuto('');
       setFechaHora('');
-      setIdCliente('');
-      setIdAuto('');
       cargarTurnos();
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.mensaje || err.message);
     }
   };
 
@@ -70,20 +76,20 @@ export default function Turnos() {
       {success && <p style={{ color: 'green' }}>{success}</p>}
 
       <form onSubmit={handleAgendar} style={{ marginBottom: '30px', padding: '15px', border: '1px solid #444', borderRadius: '5px' }}>
-        <h3>Agendar Nuevo Turno</h3>
-        <div style={{ marginTop: '10px' }}>
-          <label>Fecha y Hora:</label><br />
-          <input type="datetime-local" value={fechaHora} onChange={(e) => setFechaHora(e.target.value)} required />
+        <h3>Agendar Turno</h3>
+        <div style={{ marginBottom: '10px' }}>
+          <input type="text" placeholder="Nombre del Cliente" value={nombreCliente} onChange={e => setNombreCliente(e.target.value)} required style={{ width: '100%', padding: '8px' }} />
         </div>
-        <div style={{ marginTop: '10px' }}>
-          <label>ID del Cliente:</label><br />
-          <input type="number" value={idCliente} onChange={(e) => setIdCliente(e.target.value)} placeholder="Ej: 1" required />
+        <div style={{ marginBottom: '10px' }}>
+          <input type="email" placeholder="Email del Cliente" value={emailCliente} onChange={e => setEmailCliente(e.target.value)} required style={{ width: '100%', padding: '8px' }} />
         </div>
-        <div style={{ marginTop: '10px' }}>
-          <label>ID del Vehículo (Auto):</label><br />
-          <input type="number" value={idAuto} onChange={(e) => setIdAuto(e.target.value)} placeholder="Ej: 1" required />
+        <div style={{ marginBottom: '10px' }}>
+          <input type="text" placeholder="Patente del Vehículo" value={patenteAuto} onChange={e => setPatenteAuto(e.target.value.toUpperCase())} required style={{ width: '100%', padding: '8px' }} />
         </div>
-        <button type="submit" style={{ marginTop: '15px' }}>Agendar Turno</button>
+        <div style={{ marginBottom: '10px' }}>
+          <input type="datetime-local" value={fechaHora} onChange={e => setFechaHora(e.target.value)} required style={{ width: '100%', padding: '8px' }} />
+        </div>
+        <button type="submit" style={{ padding: '8px 15px', backgroundColor: '#4f46e5', color: 'white', border: 'none', cursor: 'pointer' }}>Agendar Turno</button>
       </form>
 
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>

@@ -39,15 +39,19 @@ export default function Perfil({ onLogout, onNavegar }) {
         const listaPermisos = [];
         let tieneRolEmpleado = false;
 
-        if (usuarioData.Rols && usuarioData.Rols.length > 0) {
-          usuarioData.Rols.forEach(rol => {
+        const rolesUsuario = usuarioData.Rols || usuarioData.roles || []; //soporte min y mayus
+        if (rolesUsuario.length > 0) {
+          rolesUsuario.forEach(rol => {
             if (['Administrativo', 'Recepcionista', 'Mecánico', 'Encargado de deposito'].includes(rol.nombre_rol)) {
               tieneRolEmpleado = true;
             }
-            if (rol.Permisos) {
-              rol.Permisos.forEach(p => {
-                if (!listaPermisos.includes(p.nombre_permiso)) {
-                  listaPermisos.push(p.nombre_permiso);
+            
+            const listaPermisosRol = rol.Permisos || rol.permisos || []; //soporte min y mayus
+            if (listaPermisosRol.length > 0) {
+              listaPermisosRol.forEach(p => {
+                const nombrePermiso = p.nombre_permiso
+                if (nombrePermiso && !listaPermisos.includes(nombrePermiso)) {
+                  listaPermisos.push(nombrePermiso);
                 }
               });
             }

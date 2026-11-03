@@ -17,8 +17,8 @@ const consultarTurnos = async (req, res) => {
             limit,
             offset,
             include: [
-                { model: Cliente, attributes: ['nombre', 'apellido', 'dni'] },
-                { model: Auto, attributes: ['patente', 'marca', 'modelo'] }
+                { model: Cliente, as: 'cliente', attributes: ['nombre', 'apellido', 'dni'] },
+                { model: Auto, as: 'auto', attributes: ['patente', 'marca', 'modelo'] }
             ],
             order: [['fecha_hora', 'ASC']]
         });
@@ -53,13 +53,15 @@ const consultarTurnosUser = async (req, res) => {
 const agendarTurno = async (req, res) => {
     const trans = await sequelize.transaction();
     try {
-        const { fecha_hora, id_cliente, id_auto } = req.body;
-        if (!fecha_hora || !id_cliente || !id_auto) {
+        const { fecha_hora, email, patente } = req.body;
+        if (!fecha_hora || !email || !patente) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'Fecha, hora, cliente y vehículo son obligatorios.' });
         }
 
-        const cliente = await Cliente.findByPk(id_cliente, { transaction: trans });
+        const cliente = await Cliente.findOne({ 
+            where: { email }, transaction: trans 
+        });
         if (!cliente) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'El cliente no existe.' });
@@ -69,7 +71,9 @@ const agendarTurno = async (req, res) => {
             return res.status(400).json({ mensaje: 'El cliente se encuentra inactivo.' });
         }
 
-        const auto = await Auto.findByPk(id_auto, { transaction: trans });
+        const auto = await Auto.findOne({ 
+            where: { patente: patente.toUpperCase() }, transaction: trans 
+        });
         if (!auto) {
             await trans.rollback();
             return res.status(400).json({ mensaje: 'El vehículo no existe .' });
@@ -79,24 +83,26 @@ const agendarTurno = async (req, res) => {
             return res.status(400).json({ mensaje: 'El vehículo se encuentra inactivo.' });
         }
 
-        if (Number(auto.id_cliente) !== Number(id_cliente)) {
-           return res.status(400).json({ mensaje: 'El vehículo seleccionado no pertenece al cliente indicado.' });
+        if (Number(auto.id_cliente) !== Number(cliente.id_cliente)) {
+            await trans.rollback();
+            return res.status(400).json({ mensaje: 'El vehículo seleccionado no pertenece al cliente indicado.' });
         }
 
         const estadoTurno = 'Agendado';
+
         const datosDVH = {
             fecha_hora,
             estado: estadoTurno,
-            id_cliente: Number(id_cliente),
-            id_auto: Number(id_auto)
+            id_cliente: Number(cliente.id_cliente),
+            id_auto: Number(auto.id_auto)
         };
         const dvh = calcularDVH(datosDVH);
 
         const nuevoTurno = await Turno.create({
             fecha_hora,
             estado: estadoTurno,
-            id_cliente: Number(id_cliente),
-            id_auto: Number(id_auto),
+            id_cliente: Number(cliente.id_cliente),
+            id_auto: Number(auto.id_auto),
             dvh
         }, { transaction: trans });
 
@@ -134,10 +140,10 @@ const reprogramarTurno = async (req, res) => {
         turno.estado = 'Confirmado';
 
         const datosDVH = {
-            fecha_hora,
-            estado: estadoTurno,
-            id_cliente: Number(id_cliente),
-            id_auto: Number(id_auto)
+            fecha_hora: turno.fecha_hora,
+            estado: turno.estado,
+            id_cliente: Number(turno.id_cliente),
+            id_auto: Number(turno.id_auto)
         };
         turno.dvh = calcularDVH(datosDVH);
         await turno.save({ transaction: trans });
@@ -171,12 +177,12 @@ const cancelarTurno = async (req, res) => {
 
         const estadoPrevio = turno.toJSON();
         turno.estado = 'Cancelado';
-        
+
         const datosDVH = {
-            fecha_hora,
-            estado: estadoTurno,
-            id_cliente: Number(id_cliente),
-            id_auto: Number(id_auto)
+            fecha_hora: turno.fecha_hora,
+            estado: turno.estado,
+            id_cliente: Number(turno.id_cliente),
+            id_auto: Number(turno.id_auto)
         };
         turno.dvh = calcularDVH(datosDVH);
         await turno.save({ transaction: trans });

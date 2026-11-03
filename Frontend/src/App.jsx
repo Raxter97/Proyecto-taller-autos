@@ -34,7 +34,6 @@ export default function App() {
     setCurrentView('login');
   };
 
-  // Vistas públicas (Autenticación)
   if (!isAuthenticated) {
     if (currentView === 'register') {
       return (
@@ -63,7 +62,7 @@ export default function App() {
         alignItems: 'center',
         flexWrap: 'wrap'
       }}>
-        <strong style={{ color: '#646cff', marginRight: '10px' }}>Taller Automotriz</strong>
+        <strong style={{ color: '#646cff', marginRight: '10px' }}>Talleres Diaz</strong>
         
         <button 
           onClick={() => setCurrentView('turnos')}

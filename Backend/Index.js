@@ -93,7 +93,7 @@ async function main() {
     await sequelize.authenticate();
     console.log('Conexión a la base de datos establecida.');
 
-    await sequelize.sync({ force: true }); 
+    await sequelize.sync({ force: false }); //cambiar a false para no borrar db
     console.log('Sincronización de modelos completada.');
 
     await seedRolesYPermisos(); 
