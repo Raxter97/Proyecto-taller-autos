@@ -7,7 +7,6 @@ export default function Turnos() {
   const [success, setSuccess] = useState('');
   const [filtroMisTurnos, setFiltroMisTurnos] = useState(false);
 
-  // 👈 Estados añadidos para el formulario de agendar turno
   const [nombreCliente, setNombreCliente] = useState('');
   const [emailCliente, setEmailCliente] = useState('');
   const [patenteAuto, setPatenteAuto] = useState('');
@@ -35,7 +34,6 @@ export default function Turnos() {
     setSuccess('');
 
     try {
-      // 👈 Enviamos los campos que espera el backend actualizado (nombre, email, patente, fecha_hora)
       await turnosApi.agendar({
         nombre: nombreCliente,
         email: emailCliente,
@@ -126,7 +124,7 @@ export default function Turnos() {
             turnos.map((t) => (
               <tr key={t.id_turno}>
                 <td>{t.id_turno}</td>
-                <td>{t.fecha_hora}</td>
+                <td>{t.fecha_hora ? new Date(t.fecha_hora).toLocaleString() : ''}</td>
                 <td>{t.estado}</td>
                 <td>{t.Cliente ? `${t.Cliente.nombre} ${t.Cliente.apellido}` : `ID: ${t.id_cliente}`}</td>
                 <td>{t.Auto ? `${t.Auto.marca} ${t.Auto.modelo} (${t.Auto.patente})` : `ID: ${t.id_auto}`}</td>
