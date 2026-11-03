@@ -25,9 +25,9 @@ const verificarPermiso = (nombrePermisoRequerido) => {
                 return res.status(403).json({ mensaje: 'Acceso denegado: sin roles asignados.' });
             }
 
-            const permisosUsuario = user.roles.map(rol => 
+            const permisosUsuario = user.roles.flatMap(rol => 
                 rol.permisos ? rol.permisos.map(p => p.nombre_permiso) : []
-            ).flat();
+            );
 
             if (!permisosUsuario.includes(nombrePermisoRequerido)) {
                 return res.status(403).json({ 

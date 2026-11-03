@@ -36,7 +36,7 @@ const registrarIngreso = async (req, res) => {
             return res.status(400).json({ mensaje: 'Número de Plaza y patente requeridos.' });
         }
 
-        const patenteMayus = patente.toUpperCase().trim(); // para evitar posibles errores
+        const patenteMayus = patente.toUpperCase().trim(); // 
 
         const auto = await Auto.findOne({ 
             where: { patente: patenteMayus },
