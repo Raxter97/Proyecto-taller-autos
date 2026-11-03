@@ -3,6 +3,7 @@ const sequelize = require('./config/Database');
 const PORT = process.env.PORT || 5000;
 
 const seedRolesYPermisos = require('./seeders/rolPermisoSeeder'); 
+const seedParking = require('./seeders/parkingSeeder'); 
 
 require('./models/User.models');
 require('./models/Cliente');
@@ -97,6 +98,7 @@ async function main() {
     console.log('Sincronización de modelos completada.');
 
     await seedRolesYPermisos(); 
+    await seedParking();
 
     app.listen(PORT, () => {
       console.log(`Servidor escuchando en http://localhost:${PORT}`);

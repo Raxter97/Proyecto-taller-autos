@@ -28,7 +28,7 @@ export default function Parking() {
     try {
       await parkingApi.ingreso({
         nro_lugar: Number(nroLugarIngreso),
-        patente: patenteIngreso.toUpperCase()
+        patente: patenteIngreso.toUpperCase().trim()
       });
       setSuccess('Ingreso de vehículo registrado en la plaza.');
       setNroLugarIngreso(''); setPatenteIngreso('');
@@ -45,6 +45,7 @@ export default function Parking() {
     const nro = Number(nroLugarSalida);
     const plazaElegida = plazas.find(p => p.nro_lugar === nro);
 
+    // Si la plaza no está registrada en BD o su estado es falso (libre)
     if (!plazaElegida || !plazaElegida.estado) {
       setError(`La plaza ${nro} ya se encuentra libre.`);
       return;
@@ -63,14 +64,16 @@ export default function Parking() {
   };
 
   const handleSalidaBotonCuadrado = async (nro_lugar) => {
+    setError(''); setSuccess('');
     const plazaElegida = plazas.find(p => p.nro_lugar === nro_lugar);
+    
     if (!plazaElegida || !plazaElegida.estado) {
       setError(`La plaza ${nro_lugar} ya se encuentra libre.`);
       return;
     }
 
     if (!window.confirm(`¿Liberar plaza de parking número ${nro_lugar}?`)) return;
-    setError(''); setSuccess('');
+    
     try {
       await parkingApi.salida(nro_lugar);
       setSuccess(`Plaza ${nro_lugar} liberada correctamente.`);
@@ -86,7 +89,6 @@ export default function Parking() {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {success && <p style={{ color: 'green' }}>{success}</p>}
 
-
       <form onSubmit={handleIngreso} style={{ border: '1px solid #444', padding: '15px', marginBottom: '20px', borderRadius: '5px' }}>
         <h3>Registrar Ingreso a Plaza de Parking</h3>
         <div style={{ display: 'flex', gap: '10px' }}>
@@ -97,7 +99,6 @@ export default function Parking() {
       </form>
 
       <h3>Estado de las Plazas de Parking (8 Plazas)</h3>
-      {/* Plazas*/}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px', marginTop: '15px' }}>
         {[1, 2, 3, 4, 5, 6, 7, 8].map((nro) => {
           const plazaActual = plazas.find(p => p.nro_lugar === nro) || { nro_lugar: nro, estado: false };
@@ -125,6 +126,7 @@ export default function Parking() {
               </p>
               {estaOcupado && (
                 <button 
+                  type="button"
                   onClick={() => handleSalidaBotonCuadrado(nro)} 
                   style={{ backgroundColor: '#dc2626', color: 'white', border: 'none', padding: '5px', cursor: 'pointer', borderRadius: '4px' }}
                 >

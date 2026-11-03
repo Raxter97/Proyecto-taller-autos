@@ -17,7 +17,7 @@ const consultarTurnos = async (req, res) => {
             limit,
             offset,
             include: [
-                { model: Cliente, as: 'cliente', attributes: ['nombre', 'apellido', 'dni'] },
+                { model: Cliente, as: 'cliente', attributes: ['nombre', 'apellido', 'email'] },
                 { model: Auto, as: 'auto', attributes: ['patente', 'marca', 'modelo'] }
             ],
             order: [['fecha_hora', 'ASC']]

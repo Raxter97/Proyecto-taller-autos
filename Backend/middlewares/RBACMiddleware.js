@@ -29,7 +29,6 @@ const verificarPermiso = (nombrePermisoRequerido) => {
                 rol.permisos ? rol.permisos.map(p => p.nombre_permiso) : []
             ).flat();
 
-            // Verifica si el usuario posee el permiso requerido
             if (!permisosUsuario.includes(nombrePermisoRequerido)) {
                 return res.status(403).json({ 
                     mensaje: `Acceso prohibido. Se requiere el permiso: ${nombrePermisoRequerido}` 

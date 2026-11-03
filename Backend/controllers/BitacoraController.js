@@ -31,8 +31,8 @@ const consultarBitacora = async (req, res) => {
         if (accion){
             where.accion = { [Op.like]: `%${accion}%` };
         } 
-        const logs = await Bitacora.findAll({
-            where,
+        const logs = await Bitacora.findAll({ where,
+            attributes: { exclude: ['dvh'] },
             order: [['fecha_hora', 'DESC']],
             limit: 100
         });

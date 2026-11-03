@@ -15,12 +15,10 @@ export default function Bitacora() {
     <div style={{ padding: '20px' }}>
       <h2>Bitácora del Sistema</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      <table border="1" cellPadding="8" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', marginTop: '15px' }}>
+      <table border="1" cellPadding="6" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', marginTop: '15px' }}>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Fecha / Hora</th>
-            <th>Usuario ID</th>
             <th>Acción</th>
             <th>Nivel Impacto</th>
             <th>Descripción</th>
@@ -28,16 +26,18 @@ export default function Bitacora() {
         </thead>
         <tbody>
           {logs.length === 0 ? (
-            <tr><td colSpan="6" align="center">No hay registros en la bitácora.</td></tr>
+            <tr><td colSpan="4" align="center">No hay registros en la bitácora.</td></tr>
           ) : (
             logs.map(log => (
               <tr key={log.id_bitacora}>
-                <td>{log.id_bitacora}</td>
-                <td>{log.fecha_hora}</td>
-                <td>{log.id_usuario}</td>
+                {/* 1. Fecha formateada a hora local */}
+                <td>{log.fecha_hora ? new Date(log.fecha_hora).toLocaleString() : ''}</td>
                 <td>{log.accion}</td>
                 <td>{log.nivel_impacto}</td>
-                <td><small>{log.descripcion}</small></td>
+                {/* 2. Celdas con restricciones de ancho y salto de línea para el JSON */}
+                <td style={{ maxWidth: '350px', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>
+                  <small>{log.descripcion}</small>
+                </td>
               </tr>
             ))
           )}

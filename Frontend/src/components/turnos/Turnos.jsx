@@ -76,16 +76,16 @@ export default function Turnos() {
       <form onSubmit={handleAgendar} style={{ marginBottom: '30px', padding: '15px', border: '1px solid #444', borderRadius: '5px' }}>
         <h3>Agendar Turno</h3>
         <div style={{ marginBottom: '10px' }}>
-          <input type="text" placeholder="Nombre del Cliente" value={nombreCliente} onChange={e => setNombreCliente(e.target.value)} required style={{ width: '100%', padding: '8px' }} />
+          <input type="text" placeholder="Nombre del Cliente" value={nombreCliente} onChange={e => setNombreCliente(e.target.value)} required style={{ width: '95%', padding: '8px' }} />
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <input type="email" placeholder="Email del Cliente" value={emailCliente} onChange={e => setEmailCliente(e.target.value)} required style={{ width: '100%', padding: '8px' }} />
+          <input type="email" placeholder="Email del Cliente" value={emailCliente} onChange={e => setEmailCliente(e.target.value)} required style={{ width: '95%', padding: '8px' }} />
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <input type="text" placeholder="Patente del Vehículo" value={patenteAuto} onChange={e => setPatenteAuto(e.target.value.toUpperCase())} required style={{ width: '100%', padding: '8px' }} />
+          <input type="text" placeholder="Patente del Vehículo" value={patenteAuto} onChange={e => setPatenteAuto(e.target.value.toUpperCase())} required style={{ width: '95%', padding: '8px' }} />
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <input type="datetime-local" value={fechaHora} onChange={e => setFechaHora(e.target.value)} required style={{ width: '100%', padding: '8px' }} />
+          <input type="datetime-local" value={fechaHora} onChange={e => setFechaHora(e.target.value)} required style={{ width: '95%', padding: '8px' }} />
         </div>
         <button type="submit" style={{ padding: '8px 15px', backgroundColor: '#4f46e5', color: 'white', border: 'none', cursor: 'pointer' }}>Agendar Turno</button>
       </form>
@@ -109,25 +109,36 @@ export default function Turnos() {
       <table border="1" cellPadding="10" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
         <thead>
           <tr>
-            <th>ID</th>
+            
             <th>Fecha y Hora</th>
             <th>Estado</th>
-            <th>Cliente</th>
-            <th>Vehículo</th>
+            <th>Nombre del Cliente  </th>
+            <th>Email del Cliente </th>
+            <th>Vehículo (Patente)</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {turnos.length === 0 ? (
-            <tr><td colSpan="6" align="center">No hay turnos registrados.</td></tr>
+            <tr><td colSpan="5" align="center">No hay turnos registrados.</td></tr>
           ) : (
             turnos.map((t) => (
               <tr key={t.id_turno}>
-                <td>{t.id_turno}</td>
+
                 <td>{t.fecha_hora ? new Date(t.fecha_hora).toLocaleString() : ''}</td>
                 <td>{t.estado}</td>
-                <td>{t.Cliente ? `${t.Cliente.nombre} ${t.Cliente.apellido}` : `ID: ${t.id_cliente}`}</td>
-                <td>{t.Auto ? `${t.Auto.marca} ${t.Auto.modelo} (${t.Auto.patente})` : `ID: ${t.id_auto}`}</td>
+                
+                <td>
+                  {t.cliente ? `${t.cliente.nombre} ${t.cliente.apellido}` : `ID: ${t.id_cliente}`}
+                </td>
+
+                <td>
+                  {t.cliente ? `${t.cliente.email}` : `ID: ${t.id_cliente}`}
+                </td>
+                
+                <td>
+                  {t.auto ? t.auto.patente : `ID: ${t.id_auto}`}
+                </td>
                 <td>
                   {t.estado !== 'Cancelado' && t.estado !== 'Atendido' && (
                     <button onClick={() => handleCancelar(t.id_turno)} style={{ backgroundColor: '#d9534f', color: 'white', border: 'none', padding: '5px 10px', cursor: 'pointer' }}>
